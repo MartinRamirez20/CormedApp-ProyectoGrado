@@ -1,0 +1,217 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+.recuperar-email-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(to right, #e2e2e2, #c9d6ff);
+  padding: 20px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.recuperar-email-card {
+  background-color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+  width: 100%;
+  max-width: 500px;
+  padding: 40px;
+}
+
+.recuperar-email-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.recuperar-email-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #512da8;
+  margin: 0 0 10px 0;
+}
+
+.recuperar-email-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.recuperar-email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.recuperar-email-instrucciones {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group input {
+  background-color: #eee;
+  border: none;
+  padding: 12px 15px;
+  font-size: 14px;
+  border-radius: 8px;
+  outline: none;
+  font-family: 'Montserrat', sans-serif;
+  transition: background-color 0.3s;
+}
+
+.form-group input:focus {
+  background-color: #e0e0e0;
+}
+
+.form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.input-ayuda {
+  font-size: 11px;
+  color: #999;
+  font-style: italic;
+}
+
+.mensaje {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.mensaje.exito {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #81c784;
+}
+
+.mensaje.error {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef5350;
+}
+
+.email-encontrado {
+  background-color: #f3e5f5;
+  border: 2px solid #512da8;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.email-encontrado-titulo {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 12px 0;
+}
+
+.email-mostrar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.icono-email {
+  font-size: 24px;
+}
+
+.email-mostrar strong {
+  font-size: 16px;
+  color: #512da8;
+  word-break: break-all;
+}
+
+.email-encontrado-nota {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+  font-style: italic;
+}
+
+.btn-primary {
+  background-color: #512da8;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: background-color 0.3s;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #3f1f8a;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.recuperar-email-links {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #512da8;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 5px;
+  font-family: 'Montserrat', sans-serif;
+  transition: color 0.3s;
+}
+
+.btn-link:hover {
+  color: #3f1f8a;
+}
+
+@media (max-width: 600px) {
+  .recuperar-email-card {
+    padding: 30px 20px;
+  }
+  
+  .recuperar-email-header h1 {
+    font-size: 28px;
+  }
+  
+  .recuperar-email-header h2 {
+    font-size: 18px;
+  }
+  
+  .email-mostrar strong {
+    font-size: 14px;
+  }
+}
