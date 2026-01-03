@@ -3,14 +3,15 @@ import Login from './componentes/Auth/Login';
 import RecuperarPassword from './componentes/Auth/RecuperarPassword';
 import RecuperarEmail from './componentes/Auth/RecuperarEmail';
 import RestablecerPassword from './componentes/Auth/RestablecerPassword';
-
+import Dashboard from './componentes/Dashboard/Dashboard';
 import './App.css';
 
-type Vista = 'login' | 'recuperar-password' | 'recuperar-email' | 'restablecer-password';
+type Vista = 'login' | 'recuperar-password' | 'recuperar-email' | 'restablecer-password' | 'dashboard';
 
 function App() {
   const [vistaActual, setVistaActual] = useState<Vista>('login');
   const [tokenRecuperacion, setTokenRecuperacion] = useState('');
+  const [usuarioAutenticado, setUsuarioAutenticado] = useState(false);
 
   // Función para manejar el login
   const handleLogin = async (email: string, password: string) => {
@@ -19,8 +20,9 @@ function App() {
     // Aquí iría tu lógica de autenticación
     // Por ejemplo: llamar a tu API, validar credenciales, etc.
     
-    // Simulación:
-    alert(`Intentando iniciar sesión con: ${email}`);
+    // Simulación: después de autenticar, ir al dashboard
+    setUsuarioAutenticado(true);
+    setVistaActual('dashboard');
   };
 
   // Función para enviar enlace de recuperación
@@ -59,7 +61,10 @@ function App() {
   // Navegación entre vistas
   const irARecuperarPassword = () => setVistaActual('recuperar-password');
   const irARecuperarEmail = () => setVistaActual('recuperar-email');
-  const irALogin = () => setVistaActual('login');
+  const irALogin = () => {
+    setVistaActual('login');
+    setUsuarioAutenticado(false);
+  };
   
   // Esta función simula recibir un enlace de recuperación
   // En producción, esto vendría de los parámetros de la URL
@@ -98,6 +103,10 @@ function App() {
           onRestablecer={handleRestablecerPassword}
           onVolver={irALogin}
         />
+      )}
+
+      {vistaActual === 'dashboard' && usuarioAutenticado && (
+        <Dashboard />
       )}
     </>
   );
