@@ -82,9 +82,11 @@
   margin: 8px 0;
   padding: 10px 15px;
   font-size: 13px;
+  font-weight: 400;
   border-radius: 8px;
   width: 100%;
   outline: none;
+  color: #333;
 }
 
 .form-container {

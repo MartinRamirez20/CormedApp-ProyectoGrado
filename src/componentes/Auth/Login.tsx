@@ -84,15 +84,15 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
         <div className="toggle-container">
           <div className="toggle">
             <div className="toggle-panel toggle-left">
-              <h1>¿Olvidaste tu contraseña?</h1>
-              <p>Presiona el botón para volver</p>
+              <h1>Iniciar Sesion</h1>
+              <p>Presione para volver a iniciar sesion</p>
               <button className="hidden" type="button" onClick={toggleRecoveryMode}>
                 Volver
               </button>
             </div>
             <div className="toggle-panel toggle-right">
-              <h1>¿Olvidó su contraseña?</h1>
-              <p>Presiona el botón para recuperar tu cuenta</p>
+              <h1>¿Olvidaste tu contraseña?</h1>
+              <p>Presione el botón para recuperar tu cuenta</p>
               <button className="hidden" type="button" onClick={toggleRecoveryMode}>
                 Recuperar
               </button>
