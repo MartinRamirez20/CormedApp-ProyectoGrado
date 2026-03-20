@@ -3,7 +3,7 @@ import Login from './componentes/Auth/Login';
 import RecuperarPassword from './componentes/Auth/RecuperarPassword';
 import RecuperarEmail from './componentes/Auth/RecuperarEmail';
 import RestablecerPassword from './componentes/Auth/RestablecerPassword';
-import Dashboard from './componentes/Dashboard/Dashboard';
+import Dashboard from './paginas/Dashboard/Dashboard';
 import './App.css';
 
 type Vista = 'login' | 'recuperar-password' | 'recuperar-email' | 'restablecer-password' | 'dashboard';
