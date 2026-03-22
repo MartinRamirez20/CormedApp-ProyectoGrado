@@ -96,6 +96,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
               <button className="hidden" type="button" onClick={toggleRecoveryMode}>
                 Recuperar
               </button>
+              {/* aqui se agrega nuevo codigo*/}
             </div>
           </div>
         </div>

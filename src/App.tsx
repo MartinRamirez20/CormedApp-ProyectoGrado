@@ -1,8 +1,11 @@
+// 1. Importalo arriba con los demás
+import { PruebaConexion } from './PruebaConexion';
+
 import { useState } from 'react';
-import Login from './componentes/Auth/Login';
-import RecuperarPassword from './componentes/Auth/RecuperarPassword';
-import RecuperarEmail from './componentes/Auth/RecuperarEmail';
-import RestablecerPassword from './componentes/Auth/RestablecerPassword';
+import Login from './paginas/Auth/Login';
+import RecuperarPassword from './paginas/Auth/RecuperarPassword';
+import RecuperarEmail from './paginas/Auth/RecuperarEmail';
+import RestablecerPassword from './paginas/Auth/RestablecerPassword';
 import Dashboard from './paginas/Dashboard/Dashboard';
 import './App.css';
 
@@ -108,6 +111,7 @@ function App() {
       {vistaActual === 'dashboard' && usuarioAutenticado && (
         <Dashboard />
       )}
+      <PruebaConexion />
     </>
   );
 }
