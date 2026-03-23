@@ -1,10 +1,11 @@
-// 1. Importalo arriba con los demás
 import { useState } from 'react';
 import Login from './paginas/Auth/Login';
 import RecuperarPassword from './paginas/Auth/RecuperarPassword';
 import RecuperarEmail from './paginas/Auth/RecuperarEmail';
 import RestablecerPassword from './paginas/Auth/RestablecerPassword';
 import Dashboard from './paginas/Dashboard/Dashboard';
+
+import { supabase } from './supabase.ts'; // Asegúrate de importar tu cliente
 import './App.css';
 
 type Vista = 'login' | 'recuperar-password' | 'recuperar-email' | 'restablecer-password' | 'dashboard';
@@ -16,15 +17,30 @@ function App() {
 
   // Función para manejar el login
   const handleLogin = async (email: string, password: string) => {
-    console.log('Login:', { email, password });
-    
-    // Aquí iría tu lógica de autenticación
-    // Por ejemplo: llamar a tu API, validar credenciales, etc.
-    
-    // Simulación: después de autenticar, ir al dashboard
-    setUsuarioAutenticado(true);
-    setVistaActual('dashboard');
-  };
+  try {
+    // 1. Llamamos a Supabase para autenticar
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      alert(`Error de acceso: ${error.message}`);
+      return;
+    }
+
+    if (data.user) {
+      console.log('Usuario autenticado:', data.user);
+      
+      // 2. Si todo sale bien, cambiamos el estado
+      setUsuarioAutenticado(true);
+      setVistaActual('dashboard');
+    }
+  } catch (error) {
+    console.error('Error inesperado:', error);
+    alert('Ocurrió un error al intentar conectar con el servidor.');
+  }
+};
 
   // Función para enviar enlace de recuperación
   const handleEnviarEnlaceRecuperacion = async (email: string): Promise<boolean> => {

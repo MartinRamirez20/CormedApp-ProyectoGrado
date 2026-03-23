@@ -2,27 +2,38 @@ import React, { useState } from 'react';
 import './Login.css';
 
 interface LoginProps {
-  onLogin?: (email: string, password: string) => void;
-  onRecoverPassword?: (email: string) => void;
+  onLogin?: (email: string, password: string) => Promise<void> | void;
+  onRecoverPassword?: (email: string) => Promise<void> | void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [loading, setLoading] = useState(false); // Estado para manejar la espera
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [recoveryEmail, setRecoveryEmail] = useState('');
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (onLogin) {
-      onLogin(loginEmail, loginPassword);
+      setLoading(true);
+      try {
+        await onLogin(loginEmail, loginPassword);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  const handleRecoverySubmit = (e: React.FormEvent) => {
+  const handleRecoverySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (onRecoverPassword) {
-      onRecoverPassword(recoveryEmail);
+      setLoading(true);
+      try {
+        await onRecoverPassword(recoveryEmail);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -33,6 +44,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
   return (
     <div className="auth-container">
       <div className={`login-container ${isRecoveryMode ? 'active' : ''}`}>
+        
         {/* Formulario de Recuperación */}
         <div className="form-container recovery-form">
           <form onSubmit={handleRecoverySubmit}>
@@ -47,10 +59,15 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
               value={recoveryEmail}
               onChange={(e) => setRecoveryEmail(e.target.value)}
               required
+              disabled={loading}
             />
-            <span>Se asignará una nueva contraseña en el correo ingresado</span>
-            <button type="submit">Recuperar</button>
-            <button type="button" className="btn-link">¿No recuerdas tu correo?</button>
+            <span>Se enviará un enlace de recuperación al correo ingresado</span>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Procesando...' : 'Recuperar'}
+            </button>
+            <button type="button" className="btn-link" disabled={loading}>
+              ¿No recuerdas tu correo?
+            </button>
           </form>
         </div>
 
@@ -68,6 +85,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
               required
+              disabled={loading}
             />
             <span>Ingrese su contraseña</span>
             <input
@@ -76,8 +94,11 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
               value={loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
               required
+              disabled={loading}
             />
-            <button type="submit">Entrar</button>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Entrando...' : 'Entrar'}
+            </button>
           </form>
         </div>
 
@@ -85,22 +106,22 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
         <div className="toggle-container">
           <div className="toggle">
             <div className="toggle-panel toggle-left">
-              <h1>Iniciar Sesion</h1>
-              <p>Presione para volver a iniciar sesion</p>
-              <button className="hidden" type="button" onClick={toggleRecoveryMode}>
+              <h1>¡Bienvenido!</h1>
+              <p>Presione para volver a iniciar sesión</p>
+              <button className="hidden" type="button" onClick={toggleRecoveryMode} disabled={loading}>
                 Volver
               </button>
             </div>
             <div className="toggle-panel toggle-right">
               <h1>¿Olvidaste tu contraseña?</h1>
               <p>Presione el botón para recuperar tu cuenta</p>
-              <button className="hidden" type="button" onClick={toggleRecoveryMode}>
+              <button className="hidden" type="button" onClick={toggleRecoveryMode} disabled={loading}>
                 Recuperar
               </button>
-              {/* aqui se agrega nuevo codigo*/}
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

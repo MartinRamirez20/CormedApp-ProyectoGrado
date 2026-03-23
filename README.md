@@ -38,3 +38,11 @@ Se crea tambien un archivo vite-env.d.ts (No recuerdo que hace)
 Se elimina el archivo PruebaConexion.tsx y su anexo al App.tsx
 
 Se realizan modificaciones de Funciones y triggers en la BD, se usa un query para la creacion de un Administrador Temporal.
+
+
+### Se modifica el Login para hacerse funcional con la BD (22/03/2026)
+Se modifican politicas RLS en la BD por errores de login.
+
+Se modifica la funcion relacionada a la tabla usuarios
+
+se hace creacion de un Admin de prueba definitivo borrando el anterior dejando listo la autenticacion con la BD y continuando al Dashboard
