@@ -5,6 +5,13 @@
    Arreglar eso en un futuro.
 */
 
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
 .login-container {
   background-color: #fff;
   border-radius: 30px;
@@ -18,24 +25,25 @@
 }
 
 .login-container h1 {
-  font-size: 36px;        /* Tamaño grande para el título principal */
-  font-weight: 700;       /* Negrita fuerte */
-  margin: 0;              /* Sin márgenes */
-  color: #512da8;         /* Color morado de CormedAPP */
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0;
+  color: #512da8;
 }
 
 .login-container h2 {
-  font-size: 22px;        /* Tamaño mediano para subtítulos */
-  font-weight: 600;       /* Negrita media */
-  margin: 0;              /* Sin márgenes */
-  color: #333;            /* Color gris oscuro */
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
 }
 
 .toggle-panel h1 {
-  color: #fff;            /* Color blanco para el panel morado */
+  color: #fff;
   font-size: 22px;
-  font-weight: 900;        /* Un poco más pequeño en el panel lateral */
+  font-weight: 900;
 }
+
 .login-container p {
   font-size: 13px;
   line-height: 20px;
@@ -59,11 +67,45 @@
   text-transform: uppercase;
   margin-top: 10px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.login-container button:hover:not(:disabled) {
+  background-color: #4527a0;
+}
+
+.login-container button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .login-container button.hidden {
   background-color: transparent;
   border-color: #fff;
+}
+
+.login-container button.hidden:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Botón tipo link (¿No recuerdas tu correo?) */
+.login-container button.btn-link {
+  background-color: transparent;
+  border: none;
+  color: #512da8;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  padding: 4px 0;
+  margin-top: 6px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.login-container button.btn-link:hover:not(:disabled) {
+  background-color: transparent;
+  color: #4527a0;
 }
 
 .login-container form {
@@ -89,6 +131,56 @@
   color: #333;
 }
 
+/* ── Pantalla de éxito al enviar el enlace de recuperación ── */
+.recovery-success {
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 0 40px;
+  height: 100%;
+  text-align: center;
+  gap: 6px;
+}
+
+.recovery-success h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #512da8;
+  margin: 0;
+}
+
+.recovery-success h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.recovery-success p {
+  font-size: 13px;
+  line-height: 20px;
+  color: #555;
+  margin: 4px 0;
+}
+
+.recovery-success p strong {
+  color: #512da8;
+}
+
+.recovery-success .texto-secundario {
+  font-size: 11px;
+  color: #888;
+  margin-top: 0;
+}
+
+.recovery-success .success-icon {
+  font-size: 40px;
+  margin: 8px 0;
+}
+
+/* ── Layout de formularios ── */
 .form-container {
   position: absolute;
   top: 0;
@@ -131,6 +223,7 @@
   }
 }
 
+/* ── Panel de toggle ── */
 .toggle-container {
   position: absolute;
   top: 0;

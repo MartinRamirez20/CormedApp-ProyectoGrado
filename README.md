@@ -46,3 +46,12 @@ Se modifican politicas RLS en la BD por errores de login.
 Se modifica la funcion relacionada a la tabla usuarios
 
 se hace creacion de un Admin de prueba definitivo borrando el anterior dejando listo la autenticacion con la BD y continuando al Dashboard
+
+### Modificacion Login con logica de la estructura en Auth(23/03/2026)
+Se corrigen funciones y el boton de no recordar correo
+
+Se crea el archivo AuthManager.tsx para la gestion de logica.
+
+Se elimina el RecuperarPassword.tsx y se combina con Login.tsx arreglando estilos
+
+Se modifica el RecuperarCorreo.tsx haciendolo compatible con Supabase

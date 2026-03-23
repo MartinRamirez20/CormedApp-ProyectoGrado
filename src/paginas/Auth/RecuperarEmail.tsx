@@ -6,9 +6,9 @@ interface RecuperarEmailProps {
   onBuscarEmail?: (nombre: string, telefono: string) => Promise<string | null>;
 }
 
-const RecuperarEmail: React.FC<RecuperarEmailProps> = ({ 
+const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
   onVolver,
-  onBuscarEmail 
+  onBuscarEmail,
 }) => {
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -25,23 +25,13 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
     try {
       if (onBuscarEmail) {
         const email = await onBuscarEmail(nombre, telefono);
-        
+
         if (email) {
           setEmailEncontrado(email);
           setMensaje('✅ ¡Encontramos tu cuenta!');
         } else {
-          setMensaje('❌ No se encontró una cuenta con esos datos. Verifica tu información.');
+          setMensaje('❌ No encontramos una cuenta con esos datos. Verifica tu nombre y teléfono.');
         }
-      } else {
-        // Simulación sin backend
-        setTimeout(() => {
-          // Simular encontrar email
-          const emailSimulado = 'usuario@ejemplo.com';
-          setEmailEncontrado(emailSimulado);
-          setMensaje('✅ ¡Encontramos tu cuenta!');
-          setLoading(false);
-        }, 1500);
-        return;
       }
     } catch (error) {
       setMensaje('❌ Ocurrió un error. Por favor, intenta nuevamente.');
@@ -51,7 +41,7 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
   };
 
   const formatearTelefono = (valor: string) => {
-    // Permitir solo números
+    // Solo permite dígitos
     const numeros = valor.replace(/\D/g, '');
     setTelefono(numeros);
   };
@@ -68,13 +58,13 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
           <p className="recuperar-email-instrucciones">
             Ingresa tu nombre completo y número de teléfono registrado para encontrar tu cuenta.
           </p>
-          
+
           <div className="form-group">
-            <label htmlFor="nombre">Nombre Completo</label>
+            <label htmlFor="nombre">Nombre completo</label>
             <input
               type="text"
               id="nombre"
-              placeholder="Ingresa tu nombre completo"
+              placeholder="Tal como fue registrado en el sistema"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               required
@@ -83,7 +73,7 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
           </div>
 
           <div className="form-group">
-            <label htmlFor="telefono">Número de Teléfono</label>
+            <label htmlFor="telefono">Número de teléfono</label>
             <input
               type="tel"
               id="telefono"
@@ -94,7 +84,7 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
               disabled={loading}
               maxLength={10}
             />
-            <span className="input-ayuda">Ingresa 10 dígitos sin espacios ni guiones</span>
+            <span className="input-ayuda">10 dígitos, sin espacios ni guiones</span>
           </div>
 
           {mensaje && (
@@ -111,26 +101,26 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
                 <strong>{emailEncontrado}</strong>
               </div>
               <p className="email-encontrado-nota">
-                Usa este correo para recuperar tu contraseña
+                Usa este correo para iniciar sesión o recuperar tu contraseña.
               </p>
             </div>
           )}
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn-primary"
             disabled={loading}
           >
-            {loading ? 'Buscando...' : 'Buscar Cuenta'}
+            {loading ? 'Buscando...' : 'Buscar cuenta'}
           </button>
 
           <div className="recuperar-email-links">
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={onVolver}
               className="btn-link"
             >
-              Volver atrás
+              Volver al inicio de sesión
             </button>
           </div>
         </form>

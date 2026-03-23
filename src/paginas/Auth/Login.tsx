@@ -4,14 +4,17 @@ import './Login.css';
 interface LoginProps {
   onLogin?: (email: string, password: string) => Promise<void> | void;
   onRecoverPassword?: (email: string) => Promise<void> | void;
+  onForgotEmail?: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
+const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword, onForgotEmail }) => {
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
-  const [loading, setLoading] = useState(false); // Estado para manejar la espera
+  const [loading, setLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [recoveryEmail, setRecoveryEmail] = useState('');
+  // NUEVO: estado para saber si el enlace ya fue enviado exitosamente
+  const [recoverySuccess, setRecoverySuccess] = useState(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +34,10 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
       setLoading(true);
       try {
         await onRecoverPassword(recoveryEmail);
+        // Si llega aquí sin error, consideramos que fue exitoso
+        setRecoverySuccess(true);
+      } catch {
+        // El componente padre puede manejar el error con un toast/alerta
       } finally {
         setLoading(false);
       }
@@ -39,39 +46,74 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
 
   const toggleRecoveryMode = () => {
     setIsRecoveryMode(!isRecoveryMode);
+    // Al volver al login, reseteamos el estado de recuperación
+    if (isRecoveryMode) {
+      setRecoveryEmail('');
+      setRecoverySuccess(false);
+    }
   };
 
   return (
     <div className="auth-container">
       <div className={`login-container ${isRecoveryMode ? 'active' : ''}`}>
-        
+
         {/* Formulario de Recuperación */}
         <div className="form-container recovery-form">
-          <form onSubmit={handleRecoverySubmit}>
-            <h1>CormedAPP</h1>
-            <br />
-            <h2>Recuperación</h2>
-            <br />
-            <span>Coloca tu correo</span>
-            <input
-              type="email"
-              placeholder="Email"
-              value={recoveryEmail}
-              onChange={(e) => setRecoveryEmail(e.target.value)}
-              required
-              disabled={loading}
-            />
-            <span>Se enviará un enlace de recuperación al correo ingresado</span>
-            <button type="submit" disabled={loading}>
-              {loading ? 'Procesando...' : 'Recuperar'}
-            </button>
-            <button type="button" className="btn-link" disabled={loading}>
-              ¿No recuerdas tu correo?
-            </button>
-          </form>
+          {!recoverySuccess ? (
+            // --- Vista normal: pedir correo ---
+            <form onSubmit={handleRecoverySubmit}>
+              <h1>CormedAPP</h1>
+              <br />
+              <h2>Recuperar contraseña</h2>
+              <br />
+              <span>Ingresa tu correo electrónico</span>
+              <input
+                type="email"
+                placeholder="ejemplo@correo.com"
+                value={recoveryEmail}
+                onChange={(e) => setRecoveryEmail(e.target.value)}
+                required
+                disabled={loading}
+              />
+              <span>Te enviaremos un enlace para restablecer tu contraseña</span>
+              <button type="submit" disabled={loading}>
+                {loading ? 'Enviando...' : 'Enviar enlace'}
+              </button>
+              <button
+                type="button"
+                className="btn-link"
+                disabled={loading}
+                onClick={onForgotEmail}
+              >
+                ¿No recuerdas tu correo?
+              </button>
+            </form>
+          ) : (
+            // --- Vista de éxito: confirmación sin redirigir ---
+            <div className="recovery-success">
+              <h1>CormedAPP</h1>
+              <br />
+              <div className="success-icon">✉️</div>
+              <h2>¡Enlace enviado!</h2>
+              <p>
+                Revisa tu bandeja de entrada en <strong>{recoveryEmail}</strong> y haz clic en
+                el enlace para restablecer tu contraseña.
+              </p>
+              <p className="texto-secundario">
+                ¿No ves el correo? Revisa tu carpeta de spam.
+              </p>
+              <button
+                type="button"
+                className="btn-link"
+                onClick={toggleRecoveryMode}
+              >
+                Volver al inicio de sesión
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Formulario de Login */}
+        {/* Formulario de Login — sin cambios */}
         <div className="form-container login-form">
           <form onSubmit={handleLoginSubmit}>
             <h1>CormedAPP</h1>
@@ -102,7 +144,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
           </form>
         </div>
 
-        {/* Panel de Toggle */}
+        {/* Panel de Toggle — sin cambios */}
         <div className="toggle-container">
           <div className="toggle">
             <div className="toggle-panel toggle-left">
