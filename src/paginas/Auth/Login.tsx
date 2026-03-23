@@ -50,6 +50,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword }) => {
             />
             <span>Se asignará una nueva contraseña en el correo ingresado</span>
             <button type="submit">Recuperar</button>
+            <button type="button" className="btn-link">¿No recuerdas tu correo?</button>
           </form>
         </div>
 

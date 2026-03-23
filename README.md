@@ -25,7 +25,6 @@ npm i react-router-dom
 
 
 ### Importacion para la base de datos (Supabase) Avances 22/03/2026
-
 npm install @supabase/supabase-js
 
 Adicional se crea en src/supabase.js junto con un archivo .env donde va URL y AnonKey.
@@ -33,3 +32,9 @@ Adicional se crea en src/supabase.js junto con un archivo .env donde va URL y An
 El archivo .env se agrega al .gitignore para no subir a github la url y apikeys del proyecto
 
 Se crea tambien un archivo vite-env.d.ts (No recuerdo que hace)
+
+
+### modificaciones en la BD usuarios (22/03/2026)
+Se elimina el archivo PruebaConexion.tsx y su anexo al App.tsx
+
+Se realizan modificaciones de Funciones y triggers en la BD, se usa un query para la creacion de un Administrador Temporal.

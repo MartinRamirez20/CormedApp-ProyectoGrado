@@ -1,6 +1,4 @@
 // 1. Importalo arriba con los demás
-import { PruebaConexion } from './PruebaConexion';
-
 import { useState } from 'react';
 import Login from './paginas/Auth/Login';
 import RecuperarPassword from './paginas/Auth/RecuperarPassword';
@@ -111,7 +109,6 @@ function App() {
       {vistaActual === 'dashboard' && usuarioAutenticado && (
         <Dashboard />
       )}
-      <PruebaConexion />
     </>
   );
 }
