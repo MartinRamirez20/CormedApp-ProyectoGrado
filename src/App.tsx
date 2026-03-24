@@ -1,20 +1,25 @@
 import { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+
 import Login from './paginas/Auth/Login';
 import RecuperarEmail from './paginas/Auth/RecuperarEmail';
 import RestablecerPassword from './paginas/Auth/RestablecerPassword';
-import Dashboard from './paginas/Dashboard/Dashboard';
+
+import MainLayout from './paginas/Administrador/layout/MainLayout';
+import Dashboard from './paginas/Administrador/Dashboard';
 
 import { supabase } from './supabase.ts';
 import './App.css';
 
-type Vista = 'login' | 'recuperar-email' | 'restablecer-password' | 'dashboard';
+type AuthVista = 'login' | 'recuperar-email' | 'restablecer-password';
 
 function App() {
-  const [vistaActual, setVistaActual] = useState<Vista>('login');
-  const [tokenRecuperacion, setTokenRecuperacion] = useState('');
   const [usuarioAutenticado, setUsuarioAutenticado] = useState(false);
+  const [authVista, setAuthVista] = useState<AuthVista>('login');
+  const [tokenRecuperacion, setTokenRecuperacion] = useState('');
+  const [cargando, setCargando] = useState(true);
+  const navigate = useNavigate();
 
-  // Detecta si el usuario llega desde un enlace de recuperación en su correo
   useEffect(() => {
     const hash = window.location.hash;
 
@@ -27,68 +32,62 @@ function App() {
       if (error) {
         alert(`El enlace no es válido o ha expirado: ${errorDescription?.replace(/\+/g, ' ')}`);
         window.history.replaceState({}, document.title, window.location.pathname);
-        return;
-      }
-
-      if (accessToken) {
+      } else if (accessToken) {
         setTokenRecuperacion(accessToken);
-        setVistaActual('restablecer-password');
+        setAuthVista('restablecer-password');
         window.history.replaceState({}, document.title, window.location.pathname);
       }
+      setCargando(false);
+      return;
     }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setUsuarioAutenticado(true);
+        navigate('/admin/dashboard');
+      }
+      setCargando(false);
+    });
   }, []);
 
   // ── Login ──────────────────────────────────────────────────────────────────
   const handleLogin = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        alert(`Error de acceso: ${error.message}`);
-        return;
-      }
-
-      if (data.user) {
-        setUsuarioAutenticado(true);
-        setVistaActual('dashboard');
-      }
+      if (error) { alert(`Error de acceso: ${error.message}`); return; }
+      if (data.user) { setUsuarioAutenticado(true); navigate('/admin/dashboard'); }
     } catch (error) {
       console.error('Error inesperado:', error);
       alert('Ocurrió un error al intentar conectar con el servidor.');
     }
   };
 
-  // ── Recuperar contraseña (envía enlace al correo) ──────────────────────────
+  // ── Recuperar contraseña ───────────────────────────────────────────────────
   const handleRecuperarPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: 'http://localhost:5173',
     });
-
-    if (error) {
-      alert(`Error al enviar enlace: ${error.message}`);
-      throw error;
-    }
+    if (error) { alert(`Error al enviar enlace: ${error.message}`); throw error; }
   };
 
-  // ── Recuperar correo (busca en public.usuarios por nombre + teléfono) ──────
+  // ── Recuperar correo ───────────────────────────────────────────────────────
+  // Usa una función RPC segura (SECURITY DEFINER) en lugar de consultar
+  // la tabla directamente — evita exponer datos a usuarios no autenticados
   const handleBuscarEmail = async (nombre: string, telefono: string): Promise<string | null> => {
     try {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('correo')
-        .ilike('nombre_razon_social', nombre.trim()) // ilike = case-insensitive
-        .eq('telefono', telefono.trim())
-        .single(); // esperamos exactamente un resultado
+      const { data, error } = await supabase.rpc('buscar_correo_por_identidad', {
+        p_nombre:   nombre.trim(),
+        p_telefono: telefono.trim(),
+      });
 
-      if (error || !data) {
-        // No encontrado o error de BD — retornamos null para que
-        // RecuperarEmail.tsx muestre el mensaje de "cuenta no encontrada"
+      if (error) {
+        console.error('Error al buscar email:', error.message);
         return null;
       }
 
-      return data.correo;
+      return data ?? null; // la función retorna el correo directamente o null
     } catch (error) {
-      console.error('Error al buscar email:', error);
+      console.error('Error inesperado al buscar email:', error);
       return null;
     }
   };
@@ -97,53 +96,74 @@ function App() {
   const handleRestablecerPassword = async (nuevaPassword: string, _token: string): Promise<boolean> => {
     try {
       const { error } = await supabase.auth.updateUser({ password: nuevaPassword });
-
-      if (error) {
-        alert(`Error al restablecer: ${error.message}`);
-        return false;
-      }
-
+      if (error) { alert(`Error al restablecer: ${error.message}`); return false; }
       return true;
-    } catch (error) {
-      console.error('Error inesperado:', error);
-      return false;
-    }
+    } catch { return false; }
   };
 
-  const irALogin = () => {
-    setVistaActual('login');
+  const handleCerrarSesion = async () => {
+    await supabase.auth.signOut();
     setUsuarioAutenticado(false);
+    navigate('/');
   };
+
+  if (cargando) return null;
 
   return (
-    <>
-      {vistaActual === 'login' && (
-        <Login
-          onLogin={handleLogin}
-          onRecoverPassword={handleRecuperarPassword}
-          onForgotEmail={() => setVistaActual('recuperar-email')}
-        />
-      )}
+    <Routes>
+      {/* ── Autenticación ── */}
+      <Route
+        path="/"
+        element={
+          usuarioAutenticado ? (
+            <Navigate to="/admin/dashboard" replace />
+          ) : (
+            <>
+              {authVista === 'login' && (
+                <Login
+                  onLogin={handleLogin}
+                  onRecoverPassword={handleRecuperarPassword}
+                  onForgotEmail={() => setAuthVista('recuperar-email')}
+                />
+              )}
+              {authVista === 'recuperar-email' && (
+                <RecuperarEmail
+                  onVolver={() => setAuthVista('login')}
+                  onBuscarEmail={handleBuscarEmail}
+                />
+              )}
+              {authVista === 'restablecer-password' && (
+                <RestablecerPassword
+                  token={tokenRecuperacion}
+                  onRestablecer={handleRestablecerPassword}
+                  onVolver={() => setAuthVista('login')}
+                />
+              )}
+            </>
+          )
+        }
+      />
 
-      {vistaActual === 'recuperar-email' && (
-        <RecuperarEmail
-          onVolver={irALogin}
-          onBuscarEmail={handleBuscarEmail}
-        />
-      )}
+      {/* ── Panel administrador ── */}
+      <Route
+        path="/admin"
+        element={
+          usuarioAutenticado
+            ? <MainLayout onCerrarSesion={handleCerrarSesion} />
+            : <Navigate to="/" replace />
+        }
+      >
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        {/* Próximas páginas:
+            <Route path="usuarios" element={<Usuarios />} />
+            <Route path="tienda"   element={<Tienda />} />
+            <Route path="pedidos"  element={<Pedidos />} />
+        */}
+      </Route>
 
-      {vistaActual === 'restablecer-password' && (
-        <RestablecerPassword
-          token={tokenRecuperacion}
-          onRestablecer={handleRestablecerPassword}
-          onVolver={irALogin}
-        />
-      )}
-
-      {vistaActual === 'dashboard' && usuarioAutenticado && (
-        <Dashboard />
-      )}
-    </>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

@@ -47,7 +47,8 @@ Se modifica la funcion relacionada a la tabla usuarios
 
 se hace creacion de un Admin de prueba definitivo borrando el anterior dejando listo la autenticacion con la BD y continuando al Dashboard
 
-### Modificacion Login con logica de la estructura en Auth(23/03/2026)
+
+### Modificacion Login con logica de la estructura en Auth (23/03/2026)
 Se corrigen funciones y el boton de no recordar correo
 
 Se crea el archivo AuthManager.tsx para la gestion de logica.
@@ -55,3 +56,15 @@ Se crea el archivo AuthManager.tsx para la gestion de logica.
 Se elimina el RecuperarPassword.tsx y se combina con Login.tsx arreglando estilos
 
 Se modifica el RecuperarCorreo.tsx haciendolo compatible con Supabase
+
+IMPORTANTE: Hace falta corregir el redireccionamiento desde el correo.
+
+
+### Cambios en Dashboard y arreglo RecuperarEmail.tsx (23/02/2026)
+Se corrige el MainLayout.tsx y su Sidebar.tsx creados con anterioridad.
+
+Adicional se arregla la estructuracion de las carpetas.
+
+DEBIDO A UN ERROR CACASTROFICO en la seccion de RecuperarEmail.tsx se crea una funcion en la base de datos que permite a los usuarios no verificados hacer consultas siempre priorizando la maxima seguridad para la empresa.
+
+Con esta funcion se puede recuperar su correo con los datos 'razon social' y 'telefono'

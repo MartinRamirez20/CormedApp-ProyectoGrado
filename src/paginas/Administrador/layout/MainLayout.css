@@ -1,0 +1,83 @@
+/* ── MainLayout ── */
+.main-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #f4f6f9;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.main-header {
+  background-color: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0 24px;
+  height: 60px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.header-logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: #512da8;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-header-outline {
+  background: transparent;
+  border: 1px solid #512da8;
+  color: #512da8;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-header-outline:hover {
+  background: #f3eefe;
+}
+
+.btn-header-danger {
+  background: transparent;
+  border: 1px solid #e53935;
+  color: #e53935;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-header-danger:hover {
+  background: #fdecea;
+}
+
+/* Outlet */
+.main-outlet {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+}

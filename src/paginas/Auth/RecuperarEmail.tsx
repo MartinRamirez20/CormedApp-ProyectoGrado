@@ -14,6 +14,7 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
   const [telefono, setTelefono] = useState('');
   const [emailEncontrado, setEmailEncontrado] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState('');
+  const [esExito, setEsExito] = useState(false); // ← controla el estilo del mensaje
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,6 +22,7 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
     setLoading(true);
     setMensaje('');
     setEmailEncontrado(null);
+    setEsExito(false);
 
     try {
       if (onBuscarEmail) {
@@ -28,20 +30,22 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
 
         if (email) {
           setEmailEncontrado(email);
-          setMensaje('✅ ¡Encontramos tu cuenta!');
+          setMensaje('¡Encontramos tu cuenta!');
+          setEsExito(true);  // ← éxito real
         } else {
-          setMensaje('❌ No encontramos una cuenta con esos datos. Verifica tu nombre y teléfono.');
+          setMensaje('No encontramos una cuenta con esos datos. Verifica tu nombre y teléfono.');
+          setEsExito(false); // ← no encontrado
         }
       }
-    } catch (error) {
-      setMensaje('❌ Ocurrió un error. Por favor, intenta nuevamente.');
+    } catch {
+      setMensaje('Ocurrió un error. Por favor, intenta nuevamente.');
+      setEsExito(false);
     } finally {
       setLoading(false);
     }
   };
 
   const formatearTelefono = (valor: string) => {
-    // Solo permite dígitos
     const numeros = valor.replace(/\D/g, '');
     setTelefono(numeros);
   };
@@ -56,11 +60,11 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
 
         <form onSubmit={handleSubmit} className="recuperar-email-form">
           <p className="recuperar-email-instrucciones">
-            Ingresa tu nombre completo y número de teléfono registrado para encontrar tu cuenta.
+            Ingresa tu nombre o razón social y número de teléfono registrado para encontrar tu cuenta.
           </p>
 
           <div className="form-group">
-            <label htmlFor="nombre">Nombre completo</label>
+            <label htmlFor="nombre">Nombre o Razón Social</label>
             <input
               type="text"
               id="nombre"
@@ -87,8 +91,9 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
             <span className="input-ayuda">10 dígitos, sin espacios ni guiones</span>
           </div>
 
+          {/* Mensaje de éxito o error — clase controlada por esExito */}
           {mensaje && (
-            <div className={`mensaje ${mensaje.includes('✅') ? 'exito' : 'error'}`}>
+            <div className={`mensaje ${esExito ? 'exito' : 'error'}`}>
               {mensaje}
             </div>
           )}
@@ -97,7 +102,6 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
             <div className="email-encontrado">
               <p className="email-encontrado-titulo">Tu correo electrónico es:</p>
               <div className="email-mostrar">
-                <span className="icono-email">📧</span>
                 <strong>{emailEncontrado}</strong>
               </div>
               <p className="email-encontrado-nota">
