@@ -68,3 +68,12 @@ Adicional se arregla la estructuracion de las carpetas.
 DEBIDO A UN ERROR CACASTROFICO en la seccion de RecuperarEmail.tsx se crea una funcion en la base de datos que permite a los usuarios no verificados hacer consultas siempre priorizando la maxima seguridad para la empresa.
 
 Con esta funcion se puede recuperar su correo con los datos 'razon social' y 'telefono'
+
+
+### DEPLOY EN NETLIFY
+
+npm run build
+
+Se busca crear la carpeta dist la cual es necesaria para el deploy
+
+Se detectan errores minusculos en AuthManager.tsx, se define una variable pero no se usa, se comentan las lineas correspondientes. (Se quiere arreglar mas adelante)

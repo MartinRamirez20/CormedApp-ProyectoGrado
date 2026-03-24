@@ -42,11 +42,11 @@ const AuthManager: React.FC = () => {
     return "usuario@ejemplo.com"; 
   };
 
-  const handleRestablecerPassword = async (nuevaPassword: string, token: string) => {
-    console.log('Guardando nueva password con token:', token);
+  //const handleRestablecerPassword = async (nuevaPassword: string, token: string) => {
+    //console.log('Guardando nueva password con token:', token);
     // Llama a tu API. Retorna true si fue exitoso, false si falló.
-    return true; 
-  };
+    //return true; 
+  //};
 
   // --- Renderizado Condicional ---
 
@@ -68,7 +68,7 @@ const AuthManager: React.FC = () => {
           window.history.replaceState({}, document.title, window.location.pathname);
           setCurrentView('login');
         }}
-        onRestablecer={handleRestablecerPassword}
+        //onRestablecer={handleRestablecerPassword}
       />
     );
   }
