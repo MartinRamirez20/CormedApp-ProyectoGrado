@@ -24,6 +24,8 @@ npm install bootstrap-icons
 npm i react-router-dom
 
 
+## AVANCES DEL PROYECTO
+
 ### Importacion para la base de datos (Supabase) Avances 22/03/2026
 npm install @supabase/supabase-js
 
@@ -77,3 +79,8 @@ npm run build
 Se busca crear la carpeta dist la cual es necesaria para el deploy
 
 Se detectan errores minusculos en AuthManager.tsx, se define una variable pero no se usa, se comentan las lineas correspondientes. (Se quiere arreglar mas adelante)
+
+
+### Correcion Netlify (30/03/2026)
+
+Se intenta corregir problemas de Supa desde la configuracion de Netlify
