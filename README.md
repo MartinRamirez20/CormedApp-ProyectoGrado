@@ -84,3 +84,18 @@ Se detectan errores minusculos en AuthManager.tsx, se define una variable pero n
 ### Correcion Netlify (30/03/2026)
 
 Se intenta corregir problemas de Supa desde la configuracion de Netlify
+
+Se determina que el error de despliegue esta en las variables de entorno de Supa
+
+Desde Netlify en 'Enviroment variables' se agregan las variables del archivo .env
+
+Despliegue Exitoso
+
+
+### Arreglo redireccionamiento en correo para recuperar contraseña (31/03/2026)
+
+Se modifica supa colocando la url de netlify y la url de redireccionamiento
+
+Se modifica el App.tsx
+
+Se crea la el archivo _redirects en publics/
