@@ -99,3 +99,5 @@ Se modifica supa colocando la url de netlify y la url de redireccionamiento
 Se modifica el App.tsx
 
 Se crea la el archivo _redirects en publics/
+
+Se arregla el App.tsx para que cierre sesion y no mande al dashboard

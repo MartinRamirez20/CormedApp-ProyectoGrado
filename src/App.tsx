@@ -14,8 +14,6 @@ import './App.css';
 type AuthVista = 'login' | 'recuperar-email';
 
 // ── Página dedicada para restablecer contraseña ────────────────────────────
-// Supabase redirige aquí con el token en el hash de la URL:
-// https://bright-paletas-6f2e42.netlify.app/restablecer-password#access_token=...
 function PaginaRestablecerPassword() {
   const navigate = useNavigate();
   const [token, setToken] = useState('');
@@ -25,6 +23,7 @@ function PaginaRestablecerPassword() {
     const hash = window.location.hash;
     const params = new URLSearchParams(hash.substring(1));
     const accessToken = params.get('access_token');
+    const type = params.get('type');
     const error = params.get('error');
     const errorDescription = params.get('error_description');
 
@@ -34,27 +33,50 @@ function PaginaRestablecerPassword() {
       return;
     }
 
-    if (accessToken) {
+    if (accessToken && type === 'recovery') {
+      // Cerramos la sesión activa para que Supabase use el token de recuperación
+      // y no la sesión anterior del usuario logueado
+      supabase.auth.signOut().then(() => {
+        setToken(accessToken);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        setListo(true);
+      });
+    } else if (accessToken) {
+      // Token presente pero no es de recuperación
       setToken(accessToken);
-      // Limpia el hash de la URL por seguridad sin redirigir
       window.history.replaceState({}, document.title, window.location.pathname);
+      setListo(true);
     } else {
-      // Alguien navegó a /restablecer-password sin token — mandarlo al login
+      // Nadie debería llegar aquí sin token
       navigate('/', { replace: true });
     }
-
-    setListo(true);
   }, []);
 
   const handleRestablecer = async (nuevaPassword: string, _token: string): Promise<boolean> => {
     try {
+      // Primero establecemos la sesión con el token de recuperación
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: token,
+        refresh_token: new URLSearchParams(window.location.hash.substring(1)).get('refresh_token') ?? '',
+      });
+
+      if (sessionError) {
+        alert(`Sesión inválida: ${sessionError.message}`);
+        return false;
+      }
+
+      // Luego actualizamos la contraseña
       const { error } = await supabase.auth.updateUser({ password: nuevaPassword });
       if (error) { alert(`Error al restablecer: ${error.message}`); return false; }
+
+      // Cerramos la sesión para que el usuario haga login con la nueva contraseña
+      await supabase.auth.signOut();
       return true;
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   };
 
-  // Espera hasta haber leído el hash antes de renderizar
   if (!listo) return null;
 
   return (
