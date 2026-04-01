@@ -5,13 +5,20 @@ import Login from './paginas/Auth/Login';
 import RecuperarEmail from './paginas/Auth/RecuperarEmail';
 import RestablecerPassword from './paginas/Auth/RestablecerPassword';
 
-import MainLayout from './paginas/Administrador/layout/MainLayout';
-import Dashboard from './paginas/Administrador/Dashboard';
+import AdminLayout    from './paginas/Administrador/layout/MainLayout';
+import AdminDashboard from './paginas/Administrador/Dashboard';
+
+import VendedorLayout    from './paginas/Vendedor/layout/MainLayout';
+import VendedorDashboard from './paginas/Vendedor/Dashboard';
+
+import UsuarioLayout    from './paginas/Usuario/layout/MainLayout';
+import UsuarioDashboard from './paginas/Usuario/Dashboard';
 
 import { supabase } from './supabase.ts';
 import './App.css';
 
 type AuthVista = 'login' | 'recuperar-email';
+type Rol = 'administrador' | 'vendedor' | 'usuario' | null;
 
 // ── Página dedicada para restablecer contraseña ────────────────────────────
 function PaginaRestablecerPassword() {
@@ -34,42 +41,31 @@ function PaginaRestablecerPassword() {
     }
 
     if (accessToken && type === 'recovery') {
-      // Cerramos la sesión activa para que Supabase use el token de recuperación
-      // y no la sesión anterior del usuario logueado
       supabase.auth.signOut().then(() => {
         setToken(accessToken);
         window.history.replaceState({}, document.title, window.location.pathname);
         setListo(true);
       });
     } else if (accessToken) {
-      // Token presente pero no es de recuperación
       setToken(accessToken);
       window.history.replaceState({}, document.title, window.location.pathname);
       setListo(true);
     } else {
-      // Nadie debería llegar aquí sin token
       navigate('/', { replace: true });
     }
   }, []);
 
   const handleRestablecer = async (nuevaPassword: string, _token: string): Promise<boolean> => {
     try {
-      // Primero establecemos la sesión con el token de recuperación
       const { error: sessionError } = await supabase.auth.setSession({
         access_token: token,
         refresh_token: new URLSearchParams(window.location.hash.substring(1)).get('refresh_token') ?? '',
       });
+      if (sessionError) { alert(`Sesión inválida: ${sessionError.message}`); return false; }
 
-      if (sessionError) {
-        alert(`Sesión inválida: ${sessionError.message}`);
-        return false;
-      }
-
-      // Luego actualizamos la contraseña
       const { error } = await supabase.auth.updateUser({ password: nuevaPassword });
       if (error) { alert(`Error al restablecer: ${error.message}`); return false; }
 
-      // Cerramos la sesión para que el usuario haga login con la nueva contraseña
       await supabase.auth.signOut();
       return true;
     } catch {
@@ -88,18 +84,56 @@ function PaginaRestablecerPassword() {
   );
 }
 
+// ── Consultar rol del usuario autenticado ──────────────────────────────────
+async function obtenerRolUsuario(userId: string): Promise<Rol> {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('roles(nombre)')
+    .eq('id', userId)
+    .single();
+
+  if (error || !data) return null;
+
+  // Supabase devuelve el join como objeto o array según la relación
+  const roles = data.roles as { nombre: string } | { nombre: string }[];
+  const nombre = Array.isArray(roles) ? roles[0]?.nombre : roles?.nombre;
+
+  if (nombre === 'administrador' || nombre === 'vendedor' || nombre === 'usuario') {
+    return nombre;
+  }
+  return null;
+}
+
+// ── Ruta por rol ───────────────────────────────────────────────────────────
+function rutaPorRol(rol: Rol): string {
+  switch (rol) {
+    case 'administrador': return '/admin/dashboard';
+    case 'vendedor':      return '/vendedor/dashboard';
+    case 'usuario':       return '/usuario/dashboard';
+    default:              return '/';
+  }
+}
+
 // ── App principal ──────────────────────────────────────────────────────────
 function App() {
   const [usuarioAutenticado, setUsuarioAutenticado] = useState(false);
+  const [rol, setRol] = useState<Rol>(null);
   const [authVista, setAuthVista] = useState<AuthVista>('login');
   const [cargando, setCargando] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        setUsuarioAutenticado(true);
-        navigate('/admin/dashboard');
+        const rolObtenido = await obtenerRolUsuario(session.user.id);
+        if (!rolObtenido) {
+          // Sin rol válido: cerrar sesión
+          await supabase.auth.signOut();
+        } else {
+          setRol(rolObtenido);
+          setUsuarioAutenticado(true);
+          navigate(rutaPorRol(rolObtenido));
+        }
       }
       setCargando(false);
     });
@@ -110,7 +144,18 @@ function App() {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) { alert(`Error de acceso: ${error.message}`); return; }
-      if (data.user) { setUsuarioAutenticado(true); navigate('/admin/dashboard'); }
+
+      if (data.user) {
+        const rolObtenido = await obtenerRolUsuario(data.user.id);
+        if (!rolObtenido) {
+          alert('Tu cuenta no tiene un rol asignado. Contacta al administrador.');
+          await supabase.auth.signOut();
+          return;
+        }
+        setRol(rolObtenido);
+        setUsuarioAutenticado(true);
+        navigate(rutaPorRol(rolObtenido));
+      }
     } catch (error) {
       console.error('Error inesperado:', error);
       alert('Ocurrió un error al intentar conectar con el servidor.');
@@ -143,6 +188,7 @@ function App() {
   const handleCerrarSesion = async () => {
     await supabase.auth.signOut();
     setUsuarioAutenticado(false);
+    setRol(null);
     navigate('/');
   };
 
@@ -155,7 +201,7 @@ function App() {
         path="/"
         element={
           usuarioAutenticado ? (
-            <Navigate to="/admin/dashboard" replace />
+            <Navigate to={rutaPorRol(rol)} replace />
           ) : (
             <>
               {authVista === 'login' && (
@@ -183,18 +229,39 @@ function App() {
       <Route
         path="/admin"
         element={
-          usuarioAutenticado
-            ? <MainLayout onCerrarSesion={handleCerrarSesion} />
+          usuarioAutenticado && rol === 'administrador'
+            ? <AdminLayout onCerrarSesion={handleCerrarSesion} />
             : <Navigate to="/" replace />
         }
       >
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        {/* Próximas páginas:
-            <Route path="usuarios" element={<Usuarios />} />
-            <Route path="tienda"   element={<Tienda />} />
-            <Route path="pedidos"  element={<Pedidos />} />
-        */}
+        <Route path="dashboard" element={<AdminDashboard />} />
+      </Route>
+
+      {/* ── Panel vendedor ── */}
+      <Route
+        path="/vendedor"
+        element={
+          usuarioAutenticado && rol === 'vendedor'
+            ? <VendedorLayout onCerrarSesion={handleCerrarSesion} />
+            : <Navigate to="/" replace />
+        }
+      >
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<VendedorDashboard />} />
+      </Route>
+
+      {/* ── Panel usuario ── */}
+      <Route
+        path="/usuario"
+        element={
+          usuarioAutenticado && rol === 'usuario'
+            ? <UsuarioLayout onCerrarSesion={handleCerrarSesion} />
+            : <Navigate to="/" replace />
+        }
+      >
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<UsuarioDashboard />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

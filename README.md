@@ -101,3 +101,19 @@ Se modifica el App.tsx
 Se crea la el archivo _redirects en publics/
 
 Se arregla el App.tsx para que cierre sesion y no mande al dashboard
+
+No sirvio (QUEDA PENDIENTE)
+
+
+### Problema Mayor: Agregar roles a los usuarios (1/04/2026) -- Atrasado
+
+Se crea una tabla roles: ('administrador', 'vendedor', 'usuario')
+
+Se relaciona a la tabla usuarios mediante un id: ({1:'administrador'},{2:'vendedor'},{3:'usuario'})
+
+Se hizo de esta manera para hacerlo escalable en caso de que se quiera crear mas roles.
+
+
+### Modificacion inicio de sesion en base a roles
+
+Se pretende que al iniciar sesion se lea el rol del usuario y se mande a un dashboard diferente en base a su nivel.
