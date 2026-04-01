@@ -114,6 +114,10 @@ Se relaciona a la tabla usuarios mediante un id: ({1:'administrador'},{2:'vended
 Se hizo de esta manera para hacerlo escalable en caso de que se quiera crear mas roles.
 
 
-### Modificacion inicio de sesion en base a roles
+### Modificacion inicio de sesion en base a roles (1/04/2026)
 
 Se pretende que al iniciar sesion se lea el rol del usuario y se mande a un dashboard diferente en base a su nivel.
+
+### Se crean los dashboards de Usuarios y Vendedores (1/04/2026)
+
+Se crean dashboards heredando estilos de src/paginas/Administrador/Dashboard.css
