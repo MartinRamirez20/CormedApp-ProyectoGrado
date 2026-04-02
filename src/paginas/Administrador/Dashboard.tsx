@@ -33,7 +33,6 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="dashboard-grid">
-
         {/* Resumen General */}
         <div className="dash-card resumen-card">
           <h5 className="dash-card-title">Resumen General</h5>
@@ -57,9 +56,7 @@ const Dashboard: React.FC = () => {
         <div className="dash-card pedidos-card">
           <div className="dash-card-header">
             <h5 className="dash-card-title">Últimos Pedidos</h5>
-            <button className="btn-detalle">Ver Detalle</button>
           </div>
-
           <div className="table-wrapper">
             <table className="pedidos-table">
               <thead>

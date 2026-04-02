@@ -10,7 +10,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ onCerrarSesion }) => {
   return (
     <div className="main-layout">
-      <Sidebar onCerrarSesion={onCerrarSesion} />
+      <Sidebar rol="usuario" onCerrarSesion={onCerrarSesion} />
       <div className="main-content">
         <header className="main-header">
           <div className="header-inner">

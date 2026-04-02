@@ -5,8 +5,9 @@ import Login from './paginas/Auth/Login';
 import RecuperarEmail from './paginas/Auth/RecuperarEmail';
 import RestablecerPassword from './paginas/Auth/RestablecerPassword';
 
-import AdminLayout    from './paginas/Administrador/layout/MainLayout';
+import AdminLayout from './paginas/Administrador/layout/MainLayout';
 import AdminDashboard from './paginas/Administrador/Dashboard';
+import Perfil from './paginas/Administrador/Perfil';
 
 import VendedorLayout    from './paginas/Vendedor/layout/MainLayout';
 import VendedorDashboard from './paginas/Vendedor/Dashboard';
@@ -88,19 +89,32 @@ function PaginaRestablecerPassword() {
 async function obtenerRolUsuario(userId: string): Promise<Rol> {
   const { data, error } = await supabase
     .from('usuarios')
-    .select('roles(nombre)')
+    .select(`
+      rol_id,
+      roles (
+        nombre
+      )
+    `)
     .eq('id', userId)
     .single();
 
-  if (error || !data) return null;
+  if (error) {
+    console.error('Error obteniendo rol:', error.message);
+    return null;
+  }
 
-  // Supabase devuelve el join como objeto o array según la relación
-  const roles = data.roles as { nombre: string } | { nombre: string }[];
-  const nombre = Array.isArray(roles) ? roles[0]?.nombre : roles?.nombre;
+  if (!data) return null;
+
+  // Supabase puede devolver roles como objeto o array
+  const rolesData = data.roles as { nombre: string } | { nombre: string }[] | null;
+  if (!rolesData) return null;
+
+  const nombre = Array.isArray(rolesData) ? rolesData[0]?.nombre : rolesData.nombre;
 
   if (nombre === 'administrador' || nombre === 'vendedor' || nombre === 'usuario') {
     return nombre;
   }
+
   return null;
 }
 
@@ -236,6 +250,7 @@ function App() {
       >
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="perfil" element={<Perfil />} />
       </Route>
 
       {/* ── Panel vendedor ── */}

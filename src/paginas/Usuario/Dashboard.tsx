@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../Administrador/Dashboard.css';
+import '../Administrador/Dashboard.css';
 
 const Dashboard: React.FC = () => {
   return (

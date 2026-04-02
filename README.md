@@ -121,3 +121,13 @@ Se pretende que al iniciar sesion se lea el rol del usuario y se mande a un dash
 ### Se crean los dashboards de Usuarios y Vendedores (1/04/2026)
 
 Se crean dashboards heredando estilos de src/paginas/Administrador/Dashboard.css
+
+### Modificacion Dashboard Administrador (Correcion importaciones en Vendedores y Usuarios) Creacion seccion Perfil (1/04/2026)
+
+Se arregla un problema con la importacion de los estilos desde Administrador para los dashboards de Vendedor y Usuario.
+
+En Dashboard Administrativo se reemplazan y agregan botones, configurando sus funcionalidades
+
+Se crea una seccion para el boton perfil (Re ardua fue) Haciendo modificacion del Dashboard, MainLayout, Sidebar, y App.tsx
+
+Desde la seccion perfil se permite modificar los datos y cambiar contraseña, SOLAMENTE SI ES ADMINISTRADOR, de lo contrario solo podra cambiar contraseña.
