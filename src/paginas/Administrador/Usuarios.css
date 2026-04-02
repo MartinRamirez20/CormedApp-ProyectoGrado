@@ -1,0 +1,300 @@
+/* ── Página Usuarios ── */
+.usuarios-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.usuarios-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.usuarios-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e1b2e;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Toolbar */
+.usuarios-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.usuarios-toolbar-left,
+.usuarios-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-label {
+  font-size: 13px;
+  color: #666;
+}
+
+.toolbar-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #512da8;
+}
+
+.usuarios-buscador {
+  padding: 7px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  min-width: 220px;
+  transition: border-color 0.2s;
+}
+
+.usuarios-buscador:focus {
+  border-color: #512da8;
+}
+
+/* Tabla */
+.usuarios-table th,
+.usuarios-table td {
+  white-space: nowrap;
+}
+
+.usuarios-vacio {
+  text-align: center;
+  color: #999;
+  padding: 24px;
+  font-size: 14px;
+}
+
+.usuarios-cargando {
+  color: #888;
+  font-size: 14px;
+  padding: 1rem 0;
+}
+
+/* Badges de rol */
+.badge-rol {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge-admin {
+  background: #ede9fe;
+  color: #512da8;
+}
+
+.badge-vendedor {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.badge-usuario {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+/* Botones de acción */
+.usuarios-acciones {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-accion {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.btn-accion:hover { opacity: 0.8; }
+
+.btn-ver      { background: #64748b; color: #fff; }
+.btn-editar   { background: #512da8; color: #fff; }
+.btn-eliminar { background: #e53935; color: #fff; }
+
+/* Paginación */
+.usuarios-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.paginacion-info {
+  font-size: 12px;
+  color: #666;
+}
+
+.paginacion-botones {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-pagina {
+  padding: 5px 12px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-pagina:hover:not(:disabled) { background: #f3eefe; border-color: #512da8; }
+.btn-pagina.activa               { background: #512da8; color: #fff; border-color: #512da8; }
+.btn-pagina:disabled             { opacity: 0.4; cursor: not-allowed; }
+
+/* Modales */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.modal-pequeño { max-width: 360px; }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e1b2e;
+}
+
+.modal-cerrar {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #888;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.modal-cerrar:hover { background: #f0f0f0; }
+
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid #eee;
+}
+
+.detalle-fila {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+  color: #555;
+}
+
+.detalle-fila strong { color: #1e1b2e; }
+
+.btn-modal-cancelar {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #555;
+  padding: 8px 18px;
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-modal-cancelar:hover { background: #f5f5f5; }
+
+.btn-modal-eliminar {
+  background: #e53935;
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-modal-eliminar:hover    { background: #c62828; }
+.btn-modal-eliminar:disabled { background: #e57373; cursor: not-allowed; }
+
+.usuarios-aviso {
+  font-size: 12px;
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+/* ── Modo oscuro ── */
+.main-content.dark .usuarios-title       { color: #e2e8f0; }
+.main-content.dark .toolbar-label        { color: #94a3b8; }
+.main-content.dark .usuarios-buscador    { background: #1a2a4a; border-color: #2d3f6e; color: #e2e8f0; }
+.main-content.dark .usuarios-buscador:focus { border-color: #a78bfa; }
+.main-content.dark .paginacion-info      { color: #94a3b8; }
+.main-content.dark .btn-pagina           { background: #16213e; border-color: #2d3f6e; color: #e2e8f0; }
+.main-content.dark .btn-pagina:hover:not(:disabled) { background: #2a2a5e; border-color: #a78bfa; }
+.main-content.dark .btn-pagina.activa    { background: #7c3aed; border-color: #7c3aed; }
+.main-content.dark .modal-box            { background: #16213e; }
+.main-content.dark .modal-header         { border-bottom-color: #2d3f6e; }
+.main-content.dark .modal-header h3      { color: #e2e8f0; }
+.main-content.dark .modal-cerrar         { color: #94a3b8; }
+.main-content.dark .modal-cerrar:hover   { background: #1a2a4a; }
+.main-content.dark .modal-body           { color: #e2e8f0; }
+.main-content.dark .modal-footer         { border-top-color: #2d3f6e; }
+.main-content.dark .detalle-fila         { border-bottom-color: #1a2a4a; color: #94a3b8; }
+.main-content.dark .detalle-fila strong  { color: #e2e8f0; }
+.main-content.dark .btn-modal-cancelar   { border-color: #2d3f6e; color: #94a3b8; }
+.main-content.dark .btn-modal-cancelar:hover { background: #1a2a4a; }

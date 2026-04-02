@@ -25,7 +25,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
   const [documentosExp, setDocumentosExp] = useState(false);
 
   // Prefijo de ruta según rol
-  const base = `/${rol}`;
+  const baseMap: Record<string, string> = {
+  administrador: '/admin',
+  vendedor:      '/vendedor',
+  usuario:       '/usuario',
+  };
+  const base = baseMap[rol] ?? `/${rol}`;
 
   useEffect(() => {
     const cargarUsuario = async () => {
@@ -67,13 +72,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
           <i className="bi bi-speedometer2"></i>
           <span>Dashboard</span>
         </Link>
-        <Link
-  to={`${base}/perfil`}
-  className={`sidebar-link ${isActive(`${base}/perfil`) ? 'active' : ''}`}
->
-  <i className="bi bi-person-circle"></i>
-  <span>Mi Perfil</span>
-</Link>
         {/* ── Solo Administrador ── */}
         {rol === 'administrador' && (
           <>

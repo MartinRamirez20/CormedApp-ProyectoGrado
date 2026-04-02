@@ -130,3 +130,61 @@
   color: #888;
   font-size: 14px;
 }
+
+/* ── Modo oscuro Perfil ── */
+.main-content.dark .perfil-title {
+  color: #e2e8f0;
+}
+
+.main-content.dark .perfil-subtitle {
+  color: #94a3b8;
+}
+
+.main-content.dark .perfil-campo label {
+  color: #94a3b8;
+}
+
+.main-content.dark .perfil-campo input,
+.main-content.dark .perfil-campo select {
+  background: #1a2a4a;
+  border-color: #2d3f6e;
+  color: #e2e8f0;
+}
+
+.main-content.dark .perfil-campo input:focus,
+.main-content.dark .perfil-campo select:focus {
+  border-color: #a78bfa;
+  background: #1e3158;
+}
+
+.main-content.dark .perfil-campo select option {
+  background: #16213e;
+  color: #e2e8f0;
+}
+
+.main-content.dark .perfil-btn-guardar {
+  background: #7c3aed;
+}
+
+.main-content.dark .perfil-btn-guardar:hover {
+  background: #6d28d9;
+}
+
+.main-content.dark .perfil-btn-guardar:disabled {
+  background: #3d2a6e;
+  color: #888;
+}
+
+.main-content.dark .perfil-ok {
+  background: #14532d;
+  color: #4ade80;
+}
+
+.main-content.dark .perfil-error {
+  background: #450a0a;
+  color: #f87171;
+}
+
+.main-content.dark .perfil-cargando {
+  color: #94a3b8;
+}

@@ -131,3 +131,15 @@ En Dashboard Administrativo se reemplazan y agregan botones, configurando sus fu
 Se crea una seccion para el boton perfil (Re ardua fue) Haciendo modificacion del Dashboard, MainLayout, Sidebar, y App.tsx
 
 Desde la seccion perfil se permite modificar los datos y cambiar contraseña, SOLAMENTE SI ES ADMINISTRADOR, de lo contrario solo podra cambiar contraseña.
+
+### Funcionalidades extra Dashboard (1/04/2026)
+
+Se agrega un boton de modo claro y oscuro
+
+### Creacion seccion Usuarios
+
+Se crea la seccion usuarios, hace falta corregir detalles
+
+Hace falta que permita organizar por nombre o correo 
+
+Arreglar botones y estilos

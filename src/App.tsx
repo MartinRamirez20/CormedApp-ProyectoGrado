@@ -8,6 +8,7 @@ import RestablecerPassword from './paginas/Auth/RestablecerPassword';
 import AdminLayout from './paginas/Administrador/layout/MainLayout';
 import AdminDashboard from './paginas/Administrador/Dashboard';
 import Perfil from './paginas/Administrador/Perfil';
+import Usuarios from './paginas/Administrador/Usuarios';
 
 import VendedorLayout    from './paginas/Vendedor/layout/MainLayout';
 import VendedorDashboard from './paginas/Vendedor/Dashboard';
@@ -137,19 +138,21 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session) {
-        const rolObtenido = await obtenerRolUsuario(session.user.id);
-        if (!rolObtenido) {
-          // Sin rol válido: cerrar sesión
-          await supabase.auth.signOut();
-        } else {
-          setRol(rolObtenido);
-          setUsuarioAutenticado(true);
+  supabase.auth.getSession().then(async ({ data: { session } }) => {
+    if (session) {
+      const rolObtenido = await obtenerRolUsuario(session.user.id);
+      if (!rolObtenido) {
+        await supabase.auth.signOut();
+      } else {
+        setRol(rolObtenido);
+        setUsuarioAutenticado(true);
+        // Solo redirigir si estamos en la raíz "/", no en otras rutas ya válidas
+        if (window.location.pathname === '/') {
           navigate(rutaPorRol(rolObtenido));
         }
       }
-      setCargando(false);
+    }
+    setCargando(false);
     });
   }, []);
 
@@ -251,6 +254,7 @@ function App() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="perfil" element={<Perfil />} />
+        <Route path="usuarios" element={<Usuarios />} />
       </Route>
 
       {/* ── Panel vendedor ── */}
