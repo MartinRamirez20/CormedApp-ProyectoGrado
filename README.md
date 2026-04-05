@@ -136,10 +136,24 @@ Desde la seccion perfil se permite modificar los datos y cambiar contraseña, SO
 
 Se agrega un boton de modo claro y oscuro
 
-### Creacion seccion Usuarios
+### Creacion seccion Usuarios (1/04/2026)
 
 Se crea la seccion usuarios, hace falta corregir detalles
 
 Hace falta que permita organizar por nombre o correo 
 
 Arreglar botones y estilos
+
+### Cierre de sesion por inactividad (5/04/2026)
+
+Se ha descubierto que la sesion no se cierra por tiempo
+
+Se implementa un hook llamado useInactividad
+
+src/hooks/useInactividad.ts
+
+Se importa en App.tsx
+
+### Opcion crear usuarios
+
+Se pretende hacer un boton (Pendiente)

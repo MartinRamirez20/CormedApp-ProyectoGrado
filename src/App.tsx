@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
+import { useCallback} from 'react'; //Para el hook inactividad
+import { useInactividad } from './hooks/useInactividad';
+
 import Login from './paginas/Auth/Login';
 import RecuperarEmail from './paginas/Auth/RecuperarEmail';
 import RestablecerPassword from './paginas/Auth/RestablecerPassword';
@@ -135,6 +138,7 @@ function App() {
   const [rol, setRol] = useState<Rol>(null);
   const [authVista, setAuthVista] = useState<AuthVista>('login');
   const [cargando, setCargando] = useState(true);
+  const [mostrarAdvertencia, setMostrarAdvertencia] = useState(false); //Hook inactividad
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -209,82 +213,131 @@ function App() {
     navigate('/');
   };
 
+  const handleAdvertencia = useCallback(() => {setMostrarAdvertencia(true);}, []);
+
+  const handleCierreAutomatico = useCallback(async () => {
+    setMostrarAdvertencia(false);
+    await supabase.auth.signOut();
+    setUsuarioAutenticado(false);
+    setRol(null);
+    navigate('/');
+  }, [navigate]);
+
+  useInactividad({
+    onAdvertencia: handleAdvertencia,
+    onCerrarSesion: handleCierreAutomatico,
+    activo: usuarioAutenticado,
+  });
+
   if (cargando) return null;
 
   return (
-    <Routes>
-      {/* ── Autenticación ── */}
-      <Route
-        path="/"
-        element={
-          usuarioAutenticado ? (
-            <Navigate to={rutaPorRol(rol)} replace />
-          ) : (
-            <>
-              {authVista === 'login' && (
-                <Login
-                  onLogin={handleLogin}
-                  onRecoverPassword={handleRecuperarPassword}
-                  onForgotEmail={() => setAuthVista('recuperar-email')}
-                />
-              )}
-              {authVista === 'recuperar-email' && (
-                <RecuperarEmail
-                  onVolver={() => setAuthVista('login')}
-                  onBuscarEmail={handleBuscarEmail}
-                />
-              )}
-            </>
-          )
-        }
-      />
+     <>
+      {/* ── Modal advertencia inactividad ── */}
+      {mostrarAdvertencia && (
+        <div style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '12px',
+            padding: '32px', maxWidth: '380px', width: '90%',
+            textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          }}>
+            <div style={{ fontSize: '40px', marginBottom: '12px' }}>⏱️</div>
+            <h3 style={{ margin: '0 0 8px', color: '#1e1b2e', fontSize: '18px' }}>
+              ¿Sigues ahí?
+            </h3>
+            <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>
+              Tu sesión se cerrará en <strong>1 minuto</strong> por inactividad.
+            </p>
+            <button
+              onClick={() => setMostrarAdvertencia(false)}
+              style={{
+                background: '#512da8', color: '#fff',
+                border: 'none', borderRadius: '8px',
+                padding: '10px 28px', fontSize: '14px',
+                fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              Seguir conectado
+            </button>
+          </div>
+        </div>
+      )}
 
-      {/* ── Ruta dedicada — Supabase redirige aquí desde el correo ── */}
-      <Route path="/restablecer-password" element={<PaginaRestablecerPassword />} />
+      <Routes>
+        {/* ── Autenticación ── */}
+        <Route
+          path="/"
+          element={
+            usuarioAutenticado ? (
+              <Navigate to={rutaPorRol(rol)} replace />
+            ) : (
+              <>
+                {authVista === 'login' && (
+                  <Login
+                    onLogin={handleLogin}
+                    onRecoverPassword={handleRecuperarPassword}
+                    onForgotEmail={() => setAuthVista('recuperar-email')}
+                  />
+                )}
+                {authVista === 'recuperar-email' && (
+                  <RecuperarEmail
+                    onVolver={() => setAuthVista('login')}
+                    onBuscarEmail={handleBuscarEmail}
+                  />
+                )}
+              </>
+            )
+          }
+        />
 
-      {/* ── Panel administrador ── */}
-      <Route
-        path="/admin"
-        element={
-          usuarioAutenticado && rol === 'administrador'
-            ? <AdminLayout onCerrarSesion={handleCerrarSesion} />
-            : <Navigate to="/" replace />
-        }
-      >
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="perfil" element={<Perfil />} />
-        <Route path="usuarios" element={<Usuarios />} />
-      </Route>
+        <Route path="/restablecer-password" element={<PaginaRestablecerPassword />} />
 
-      {/* ── Panel vendedor ── */}
-      <Route
-        path="/vendedor"
-        element={
-          usuarioAutenticado && rol === 'vendedor'
-            ? <VendedorLayout onCerrarSesion={handleCerrarSesion} />
-            : <Navigate to="/" replace />
-        }
-      >
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<VendedorDashboard />} />
-      </Route>
+        <Route
+          path="/admin"
+          element={
+            usuarioAutenticado && rol === 'administrador'
+              ? <AdminLayout onCerrarSesion={handleCerrarSesion} />
+              : <Navigate to="/" replace />
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="perfil"    element={<Perfil />} />
+          <Route path="usuarios"  element={<Usuarios />} />
+        </Route>
 
-      {/* ── Panel usuario ── */}
-      <Route
-        path="/usuario"
-        element={
-          usuarioAutenticado && rol === 'usuario'
-            ? <UsuarioLayout onCerrarSesion={handleCerrarSesion} />
-            : <Navigate to="/" replace />
-        }
-      >
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<UsuarioDashboard />} />
-      </Route>
+        <Route
+          path="/vendedor"
+          element={
+            usuarioAutenticado && rol === 'vendedor'
+              ? <VendedorLayout onCerrarSesion={handleCerrarSesion} />
+              : <Navigate to="/" replace />
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<VendedorDashboard />} />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route
+          path="/usuario"
+          element={
+            usuarioAutenticado && rol === 'usuario'
+              ? <UsuarioLayout onCerrarSesion={handleCerrarSesion} />
+              : <Navigate to="/" replace />
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<UsuarioDashboard />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
 
