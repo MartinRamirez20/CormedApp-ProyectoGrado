@@ -35,6 +35,20 @@ const Usuarios: React.FC = () => {
   const [guardando, setGuardando]         = useState(false);
   const [mensaje, setMensaje]             = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
 
+  //Crear usuarios
+  const [modalCrear, setModalCrear] = useState(false);
+  const [nuevoUsuario, setNuevoUsuario] = useState({
+    nombre_razon_social:   '',
+    correo:                '',
+    password:              '',
+    telefono:              '',
+  tipo_identificacion:   'CC',
+    numero_identificacion: '',
+    rol_id:                '',
+  });
+  const [creando, setCreando] = useState(false);
+  const [mensajeCrear, setMensajeCrear] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+
   // ── Cargar usuarios ────────────────────────────────────────────────────────
   const cargarUsuarios = async () => {
     setCargando(true);
@@ -148,12 +162,68 @@ const Usuarios: React.FC = () => {
     }
   };
 
+  const handleCrearUsuario = async () => {
+    const { nombre_razon_social, correo, password, numero_identificacion, rol_id } = nuevoUsuario;
+
+    if (!nombre_razon_social || !correo || !password || !numero_identificacion || !rol_id) {
+      setMensajeCrear({ tipo: 'error', texto: 'Todos los campos obligatorios deben completarse.' });
+      return;
+    }
+    if (password.length < 6) {
+      setMensajeCrear({ tipo: 'error', texto: 'La contraseña debe tener al menos 6 caracteres.' });
+      return;
+    }
+
+    setCreando(true);
+    setMensajeCrear(null);
+
+    const { data: { session } } = await supabase.auth.getSession();
+
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/crear-usuario`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+          'apikey':        import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          ...nuevoUsuario,
+          rol_id: Number(nuevoUsuario.rol_id),
+        }),
+      }
+    );
+
+    const result = await res.json();
+
+    if (!res.ok || result.error) {
+      setMensajeCrear({ tipo: 'error', texto: result.error ?? 'Error al crear el usuario.' });
+    } else {
+      setMensajeCrear({ tipo: 'ok', texto: '¡Usuario creado exitosamente!' });
+      await cargarUsuarios();
+      setTimeout(() => {
+        setModalCrear(false);
+        setMensajeCrear(null);
+        setNuevoUsuario({
+          nombre_razon_social: '', correo: '', password: '',
+          telefono: '', tipo_identificacion: 'CC',
+          numero_identificacion: '', rol_id: '',
+        });
+      }, 1200);
+    }
+    setCreando(false);
+  };
+
   return (
     <div className="usuarios-page">
       <div className="usuarios-header">
         <h2 className="usuarios-title">
           <i className="bi bi-people"></i> Usuarios
         </h2>
+        <button className="btn-nuevo-usuario" onClick={() => setModalCrear(true)}>
+          <i className="bi bi-person-plus"></i> Nuevo Usuario
+        </button>
       </div>
 
       <div className="dash-card">
@@ -363,7 +433,102 @@ const Usuarios: React.FC = () => {
           </div>
         </div>
       )}
+      {/* ── Modal Crear Usuario ── */}
+      {modalCrear && (
+        <div className="modal-overlay" onClick={() => setModalCrear(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Nuevo Usuario</h3>
+              <button className="modal-cerrar" onClick={() => setModalCrear(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+
+              <div className="perfil-campo">
+                <label>Nombre / Razón Social *</label>
+                <input
+                  placeholder="Nombre completo"
+                  value={nuevoUsuario.nombre_razon_social}
+                  onChange={e => setNuevoUsuario(p => ({ ...p, nombre_razon_social: e.target.value }))}
+                />
+              </div>
+
+              <div className="perfil-campo">
+                <label>Correo electrónico *</label>
+                <input
+                  type="email"
+                  placeholder="correo@ejemplo.com"
+                  value={nuevoUsuario.correo}
+                  onChange={e => setNuevoUsuario(p => ({ ...p, correo: e.target.value }))}
+                />
+              </div>
+
+              <div className="perfil-campo">
+                <label>Contraseña temporal *</label>
+                <input
+                  type="password"
+                  placeholder="Mínimo 6 caracteres"
+                  value={nuevoUsuario.password}
+                  onChange={e => setNuevoUsuario(p => ({ ...p, password: e.target.value }))}
+                />
+              </div>
+
+              <div className="perfil-campo">
+                <label>Teléfono</label>
+                <input
+                  placeholder="3001234567"
+                  value={nuevoUsuario.telefono}
+                  onChange={e => setNuevoUsuario(p => ({ ...p, telefono: e.target.value }))}
+                />
+              </div>
+
+              <div className="perfil-fila">
+                <div className="perfil-campo">
+                  <label>Tipo de ID</label>
+                  <select
+                    value={nuevoUsuario.tipo_identificacion}
+                    onChange={e => setNuevoUsuario(p => ({ ...p, tipo_identificacion: e.target.value }))}
+                  >
+                    {['CC', 'NIT', 'PASAPORTE', 'CE'].map(t => <option key={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div className="perfil-campo">
+                  <label>Número de identificación *</label>
+                  <input
+                    placeholder="123456789"
+                    value={nuevoUsuario.numero_identificacion}
+                    onChange={e => setNuevoUsuario(p => ({ ...p, numero_identificacion: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="perfil-campo">
+                <label>Rol *</label>
+                <select
+                  value={nuevoUsuario.rol_id}
+                  onChange={e => setNuevoUsuario(p => ({ ...p, rol_id: e.target.value }))}
+                >
+                  <option value="">— Seleccionar rol —</option>
+                  {roles.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
+                </select>
+              </div>
+
+              {mensajeCrear && (
+                <p className={`perfil-mensaje ${mensajeCrear.tipo === 'ok' ? 'perfil-ok' : 'perfil-error'}`}>
+                  {mensajeCrear.texto}
+                </p>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancelar" onClick={() => setModalCrear(false)}>Cancelar</button>
+              <button className="perfil-btn-guardar" onClick={handleCrearUsuario} disabled={creando}>
+                {creando ? 'Creando...' : 'Crear Usuario'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+    
   );
 };
 

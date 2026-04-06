@@ -154,6 +154,18 @@ src/hooks/useInactividad.ts
 
 Se importa en App.tsx
 
-### Opcion crear usuarios
+Se corrige el tiempo de 2 mins a 29 mins de inactividad
 
-Se pretende hacer un boton (Pendiente)
+### Opcion crear usuarios (5/04/2026)
+
+Se edita la seccion de usuarios para agregar la funcionalidad de agregar nuevos usuarios.
+
+Se hace modificaciones en Usuarios.tsx junto con sus estilos (No se crea un archivo .tsx nuevo)
+
+Se agrega una Edge Function en Supabase para evitar que la creacion de los usuarios sea vulnerable a ataques externos.
+
+CREACION DE USUARIO CON ROL 'vendedor' EXITOSO (Util para pruebas con Dashboard de vendedor)
+
+Tareas pendientes dia (6/04/2026): Solucionar boton perfil, quitar boton ver detalle y agregar modo oscuro en vendedor.
+
+Colocar una confirmacion de contraseña a la hora de crear un nuevo usuario desde administrador.

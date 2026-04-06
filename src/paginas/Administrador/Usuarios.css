@@ -278,6 +278,34 @@
   font-weight: 500;
 }
 
+/* Boton crear usuarios */
+.btn-nuevo-usuario {
+  background: #512da8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: background 0.2s;
+}
+
+.btn-nuevo-usuario:hover {
+  background: #4527a0;
+}
+
+.main-content.dark .btn-nuevo-usuario {
+  background: #7c3aed;
+}
+
+.main-content.dark .btn-nuevo-usuario:hover {
+  background: #6d28d9;
+}
+
 /* ── Modo oscuro ── */
 .main-content.dark .usuarios-title       { color: #e2e8f0; }
 .main-content.dark .toolbar-label        { color: #94a3b8; }

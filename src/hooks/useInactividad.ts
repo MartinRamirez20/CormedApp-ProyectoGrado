@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 
-const TIEMPO_INACTIVIDAD_MS = 2 * 60 * 1000; //Advertencia de 59 mins
+const TIEMPO_INACTIVIDAD_MS = 29 * 60 * 1000; //Advertencia de 59 mins
 const TIEMPO_CIERRE_MS      = 1 * 60 * 1000; // Se cierra la sesion
 
 interface Opciones {
