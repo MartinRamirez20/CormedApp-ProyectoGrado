@@ -48,6 +48,10 @@ const Usuarios: React.FC = () => {
   });
   const [creando, setCreando] = useState(false);
   const [mensajeCrear, setMensajeCrear] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+  const [orden, setOrden] = useState<{ columna: keyof Usuario | 'rol'; direccion: 'asc' | 'desc' }>({
+  columna: 'consecutivo',
+  direccion: 'asc'
+});
 
   // ── Cargar usuarios ────────────────────────────────────────────────────────
   const cargarUsuarios = async () => {
@@ -100,10 +104,33 @@ const Usuarios: React.FC = () => {
     setPagina(1);
   }, [busqueda, usuarios]);
 
+  // Modifica la lógica de filtrados para incluir el ordenamiento
+  const usuariosOrdenados = [...filtrados].sort((a, b) => {
+    let valA: any = a[orden.columna as keyof Usuario];
+    let valB: any = b[orden.columna as keyof Usuario];
+
+    // Caso especial para la columna Rol (que es un objeto anidado)
+    if (orden.columna === 'rol') {
+      valA = a.roles?.nombre ?? '';
+      valB = b.roles?.nombre ?? '';
+    }
+
+    if (valA < valB) return orden.direccion === 'asc' ? -1 : 1;
+    if (valA > valB) return orden.direccion === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // Función para cambiar el orden
+  const handleSort = (columna: keyof Usuario | 'rol') => {
+    const esAsc = orden.columna === columna && orden.direccion === 'asc';
+    setOrden({ columna, direccion: esAsc ? 'desc' : 'asc' });
+  };
+
   // ── Paginación ─────────────────────────────────────────────────────────────
   const totalPaginas = Math.ceil(filtrados.length / REGISTROS_POR_PAGINA);
   const inicio       = (pagina - 1) * REGISTROS_POR_PAGINA;
-  const paginados    = filtrados.slice(inicio, inicio + REGISTROS_POR_PAGINA);
+  // Actualiza la paginación para que use 'usuariosOrdenados' en lugar de 'filtrados'
+  const paginados = usuariosOrdenados.slice(inicio, inicio + REGISTROS_POR_PAGINA);
 
   // ── Editar usuario ─────────────────────────────────────────────────────────
   const handleGuardarEdicion = async () => {
@@ -251,55 +278,53 @@ const Usuarios: React.FC = () => {
           <>
             <div className="table-wrapper">
               <table className="pedidos-table usuarios-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Nombre / Razón Social</th>
-                    <th>Correo</th>
-                    <th>Teléfono</th>
-                    <th>Identificación</th>
-                    <th>Rol</th>
-                    <th>Acciones</th>
+              <thead>
+                <tr>
+                  <th onClick={() => handleSort('consecutivo')} style={{ cursor: 'pointer' }}>
+                    # {orden.columna === 'consecutivo' ? (orden.direccion === 'asc' ? '🔼' : '🔽') : ''}
+                  </th>
+                  <th onClick={() => handleSort('nombre_razon_social')} style={{ cursor: 'pointer' }}>
+                    Nombre / Razón Social {orden.columna === 'nombre_razon_social' ? (orden.direccion === 'asc' ? '🔼' : '🔽') : ''}
+                  </th>
+                  <th>Correo</th>
+                  <th>Teléfono</th>
+                  <th>Identificación</th>
+                  <th onClick={() => handleSort('rol')} style={{ cursor: 'pointer' }}>
+                    Rol {orden.columna === 'rol' ? (orden.direccion === 'asc' ? '🔼' : '🔽') : ''}
+                  </th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginados.map(u => (
+                  <tr key={u.id}>
+                    <td>{u.consecutivo}</td>
+                    <td className="cliente-cell"><div>{u.nombre_razon_social}</div></td>
+                    <td>{u.correo}</td>
+                    <td>{u.telefono || '—'}</td>
+                    <td>{u.tipo_identificacion} {u.numero_identificacion}</td>
+                    <td>
+                      <span className={getRolBadge(u.roles?.nombre)}>
+                        {u.roles?.nombre ?? '—'}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="usuarios-acciones">
+                        <button className="btn-accion btn-ver" title="Ver detalle" onClick={() => setModalDetalle(u)}>
+                          <i className="bi bi-eye"></i> 🔍
+                        </button>
+                        <button className="btn-accion btn-editar" title="Editar" onClick={() => setModalEditar({ ...u })}>
+                          <i className="bi bi-pencil"></i> 📝
+                        </button>
+                        <button className="btn-accion btn-eliminar" title="Eliminar" onClick={() => setModalEliminar(u)}>
+                          <i className="bi bi-trash"></i> 🗑️
+                        </button>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {paginados.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="usuarios-vacio">
-                        No se encontraron usuarios.
-                      </td>
-                    </tr>
-                  ) : (
-                    paginados.map(u => (
-                      <tr key={u.id}>
-                        <td>{u.consecutivo}</td>
-                        <td className="cliente-cell"><div>{u.nombre_razon_social}</div></td>
-                        <td>{u.correo}</td>
-                        <td>{u.telefono || '—'}</td>
-                        <td>{u.tipo_identificacion} {u.numero_identificacion}</td>
-                        <td>
-                          <span className={getRolBadge(u.roles?.nombre)}>
-                            {u.roles?.nombre ?? '—'}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="usuarios-acciones">
-                            <button className="btn-accion btn-ver" title="Ver detalle" onClick={() => setModalDetalle(u)}>
-                              <i className="bi bi-eye"></i>
-                            </button>
-                            <button className="btn-accion btn-editar" title="Editar" onClick={() => setModalEditar({ ...u })}>
-                              <i className="bi bi-pencil"></i>
-                            </button>
-                            <button className="btn-accion btn-eliminar" title="Eliminar" onClick={() => setModalEliminar(u)}>
-                              <i className="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                ))}
+              </tbody>
+            </table>
             </div>
 
             <div className="usuarios-paginacion">

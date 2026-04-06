@@ -169,3 +169,15 @@ CREACION DE USUARIO CON ROL 'vendedor' EXITOSO (Util para pruebas con Dashboard 
 Tareas pendientes dia (6/04/2026): Solucionar boton perfil, quitar boton ver detalle y agregar modo oscuro en vendedor.
 
 Colocar una confirmacion de contraseña a la hora de crear un nuevo usuario desde administrador.
+
+### Solucion MainLayout Vendedor
+
+Se agrega el modo oscuro, se agrega la seccion perfil y se quita el boton ver detalle.
+
+FALTA ACLARACION DATOS FISCALES.
+
+### Modificacion Usuarios Administrador
+
+Se modifican los botones de 'Ver detalle', 'Editar' y 'Eliminar' agregando iconos para reconocerlos facilmente
+
+Se agrega una funcion para organizar alfabetica y alfanumerica de manera ascendente y descendente.

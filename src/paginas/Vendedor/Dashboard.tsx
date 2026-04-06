@@ -42,11 +42,11 @@ const Dashboard: React.FC = () => {
             </button>
             <button className="resumen-item">
               <span className="resumen-icon">👥</span>
-              <span>Ver Mis Clientes</span>
+              <span>Mis Clientes</span>
             </button>
             <button className="resumen-item">
               <span className="resumen-icon">📊</span>
-              <span>Mi Resumen de Ventas</span>
+              <span>Resumen de Ventas</span>
             </button>
           </div>
         </div>
@@ -55,7 +55,6 @@ const Dashboard: React.FC = () => {
         <div className="dash-card pedidos-card">
           <div className="dash-card-header">
             <h5 className="dash-card-title">Mis Pedidos Recientes</h5>
-            <button className="btn-detalle">Ver Detalle</button>
           </div>
           <div className="table-wrapper">
             <table className="pedidos-table">

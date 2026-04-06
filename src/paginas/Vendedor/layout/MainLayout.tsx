@@ -1,5 +1,5 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from '../../../componentes/Sidebar/Sidebar';
 import '../../Administrador/layout/MainLayout.css';
 
@@ -8,15 +8,27 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ onCerrarSesion }) => {
+  const navigate = useNavigate();
+  const [modoOscuro, setModoOscuro] = useState(false);
+
   return (
     <div className="main-layout">
-      <Sidebar rol="usuario" onCerrarSesion={onCerrarSesion} />
-      <div className="main-content">
+      <Sidebar rol="vendedor" onCerrarSesion={onCerrarSesion} />
+
+      <div className={`main-content ${modoOscuro ? 'dark' : ''}`}>
         <header className="main-header">
           <div className="header-inner">
-            <h1 className="header-logo">CormedAPP</h1>
+            <h1 className="header-logo">CormedAPP - Vendedor</h1>
             <div className="header-actions">
-              <button className="btn-header-outline">Perfil</button>
+              <button
+                className="btn-tema"
+                onClick={() => setModoOscuro(!modoOscuro)}
+              >
+                {modoOscuro ? 'Modo Claro' : 'Modo Oscuro'}
+              </button>
+              <button className="btn-header-outline" onClick={() => navigate('/vendedor/perfil')}>
+                Perfil
+              </button>
               <button className="btn-header-danger" onClick={onCerrarSesion}>
                 Cerrar Sesión
               </button>
