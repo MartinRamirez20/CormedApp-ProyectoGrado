@@ -11,7 +11,9 @@ import RestablecerPassword from './paginas/Auth/RestablecerPassword';
 import AdminLayout from './paginas/Administrador/layout/MainLayout';
 import AdminDashboard from './paginas/Administrador/Dashboard';
 import Perfil from './paginas/Administrador/Perfil';
-import Usuarios from './paginas/Administrador/Usuarios';
+import Usuarios from './paginas/Administrador/Usuarios/Usuarios';
+import Roles from './paginas/Administrador/Usuarios/Roles';
+import Clientes from './paginas/Administrador/Clientes/Clientes'
 
 import VendedorLayout    from './paginas/Vendedor/layout/MainLayout';
 import VendedorDashboard from './paginas/Vendedor/Dashboard';
@@ -310,6 +312,8 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="perfil"    element={<Perfil />} />
           <Route path="usuarios"  element={<Usuarios />} />
+          <Route path="roles" element={<Roles />} /> 
+          <Route path="clientes" element={<Clientes />} />
         </Route>
 
         <Route

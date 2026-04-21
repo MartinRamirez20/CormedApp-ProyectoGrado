@@ -22,7 +22,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
   const [usuariosExp,   setUsuariosExp]   = useState(false);
   const [tiendaExp,     setTiendaExp]     = useState(false);
   const [pedidosExp,    setPedidosExp]    = useState(false);
-  const [documentosExp, setDocumentosExp] = useState(false);
 
   // Prefijo de ruta según rol
   const baseMap: Record<string, string> = {
@@ -65,10 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
       <nav className="sidebar-nav">
 
         {/* Dashboard — todos los roles */}
-        <Link
-          to={`${base}/dashboard`}
-          className={`sidebar-link ${isActive(`${base}/dashboard`) ? 'active' : ''}`}
-        >
+        <Link to={`${base}/dashboard`} className={`sidebar-link ${isActive(`${base}/dashboard`) ? 'active' : ''}`}>
           <i className="bi bi-speedometer2"></i>
           <span>Dashboard</span>
         </Link>
@@ -84,7 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
               {usuariosExp && (
                 <div className="sidebar-submenu">
                   <Link to={`${base}/usuarios`} className={`sidebar-sublink ${isActive(`${base}/usuarios`) ? 'active' : ''}`}>Todos</Link>
-                  <Link to={`${base}/usuarios/roles`} className={`sidebar-sublink ${isActive(`${base}/usuarios/roles`) ? 'active' : ''}`}>Roles</Link>
+                  <Link to={`${base}/roles`} className={`sidebar-sublink ${isActive(`${base}/roles`) ? 'active' : ''}`}>Roles</Link>
                 </div>
               )}
             </div>
@@ -118,19 +114,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
               )}
             </div>
 
-            <div className="sidebar-section">
-              <button className="sidebar-link sidebar-toggle" onClick={() => setDocumentosExp(!documentosExp)}>
-                <i className="bi bi-file-earmark-text"></i>
-                <span>Documentos y registros</span>
-                <i className={`bi bi-chevron-${documentosExp ? 'down' : 'right'} sidebar-chevron`}></i>
-              </button>
-              {documentosExp && (
-                <div className="sidebar-submenu">
-                  <Link to={`${base}/documentos/internos`} className={`sidebar-sublink ${isActive(`${base}/documentos/internos`) ? 'active' : ''}`}>Documentos internos</Link>
-                  <Link to={`${base}/documentos/iso`} className={`sidebar-sublink ${isActive(`${base}/documentos/iso`) ? 'active' : ''}`}>Normas ISO</Link>
-                </div>
-              )}
-            </div>
+            {/* ── Sección de Clientes como Botón Directo ── */}
+            <Link to={`${base}/clientes`} className={`sidebar-link ${isActive(`${base}/clientes`) ? 'active' : ''}`}>
+              <i className="bi bi-file-earmark-text"></i>
+              <span>Clientes</span>
+            </Link>
           </>
         )}
 

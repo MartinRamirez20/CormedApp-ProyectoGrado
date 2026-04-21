@@ -47,7 +47,7 @@ const Dashboard: React.FC = () => {
             </button>
             <button className="resumen-item">
               <span className="resumen-icon">📝</span>
-              <span>Notas Adicionales</span>
+              <span>Productos</span>
             </button>
           </div>
         </div>

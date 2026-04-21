@@ -181,3 +181,14 @@ FALTA ACLARACION DATOS FISCALES.
 Se modifican los botones de 'Ver detalle', 'Editar' y 'Eliminar' agregando iconos para reconocerlos facilmente
 
 Se agrega una funcion para organizar alfabetica y alfanumerica de manera ascendente y descendente.
+
+
+### Modificaciones importantes en tabla usuarios, creacion tablas clientes y productos (21/04/2026)
+
+Se realizaron modificaciones en la seccion usuario, quitando razon social y solo dejando nombres
+
+Creacion seccion roles con exito.
+
+Creacion seccion Clientes con exito.
+
+Esto fue posible con las modificaciones realizadas en el Sidebar.tsx con sus Links y el App.tsx con el Route y las importaciones.

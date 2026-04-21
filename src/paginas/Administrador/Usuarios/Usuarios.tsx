@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../supabase.ts';
+import { supabase } from '../../../supabase.ts';
 import './Usuarios.css';
 
 interface RolSimple {
@@ -284,7 +284,7 @@ const Usuarios: React.FC = () => {
                     # {orden.columna === 'consecutivo' ? (orden.direccion === 'asc' ? '🔼' : '🔽') : ''}
                   </th>
                   <th onClick={() => handleSort('nombre_razon_social')} style={{ cursor: 'pointer' }}>
-                    Nombre / Razón Social {orden.columna === 'nombre_razon_social' ? (orden.direccion === 'asc' ? '🔼' : '🔽') : ''}
+                    Nombre {orden.columna === 'nombre_razon_social' ? (orden.direccion === 'asc' ? '🔼' : '🔽') : ''}
                   </th>
                   <th>Correo</th>
                   <th>Teléfono</th>
