@@ -52,7 +52,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
   return (
     <aside className="sidebar">
       <div className="sidebar-user">
-        <div className="sidebar-avatar">👤</div>
         <div className="sidebar-user-info">
           <p className="sidebar-user-name">{usuario.nombre}</p>
           <p className="sidebar-user-email">{usuario.correo}</p>

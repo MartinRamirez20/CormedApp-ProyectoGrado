@@ -13,7 +13,8 @@ import AdminDashboard from './paginas/Administrador/Dashboard';
 import Perfil from './paginas/Administrador/Perfil';
 import Usuarios from './paginas/Administrador/Usuarios/Usuarios';
 import Roles from './paginas/Administrador/Usuarios/Roles';
-import Clientes from './paginas/Administrador/Clientes/Clientes'
+import Clientes from './paginas/Administrador/Clientes/Clientes';
+import Tienda from './paginas/Administrador/Tienda/Tienda';
 
 import VendedorLayout    from './paginas/Vendedor/layout/MainLayout';
 import VendedorDashboard from './paginas/Vendedor/Dashboard';
@@ -314,6 +315,7 @@ function App() {
           <Route path="usuarios"  element={<Usuarios />} />
           <Route path="roles" element={<Roles />} /> 
           <Route path="clientes" element={<Clientes />} />
+          <Route path="tienda" element={<Tienda />} />
         </Route>
 
         <Route

@@ -183,7 +183,7 @@ Se modifican los botones de 'Ver detalle', 'Editar' y 'Eliminar' agregando icono
 Se agrega una funcion para organizar alfabetica y alfanumerica de manera ascendente y descendente.
 
 
-### Modificaciones importantes en tabla usuarios, creacion tablas clientes y productos (21/04/2026)
+### Modificaciones importantes en tabla usuarios, creacion tablas clientes y productos (20/04/2026)
 
 Se realizaron modificaciones en la seccion usuario, quitando razon social y solo dejando nombres
 
@@ -192,3 +192,17 @@ Creacion seccion roles con exito.
 Creacion seccion Clientes con exito.
 
 Esto fue posible con las modificaciones realizadas en el Sidebar.tsx con sus Links y el App.tsx con el Route y las importaciones.
+
+
+### Modificaciones menores (21/04/2026)
+
+Se realizaron cambios en los estilos de las tablas de Usuarios y Clientes.
+
+Modificacion de estilos en letras y barra buscadora.
+
+
+### Creacion seccion Tienda/Productos (21/04/2026)
+
+Se hace la creacion de esta seccion, hace falta agregarla al Sidebar.tsx y al App.tsx
+
+Ya funciona xd

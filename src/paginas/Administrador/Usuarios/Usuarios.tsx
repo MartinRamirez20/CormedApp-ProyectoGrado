@@ -249,7 +249,7 @@ const Usuarios: React.FC = () => {
           <i className="bi bi-people"></i> Usuarios
         </h2>
         <button className="btn-nuevo-usuario" onClick={() => setModalCrear(true)}>
-          <i className="bi bi-person-plus"></i> Nuevo Usuario
+          <i className="bi bi-person-plus">Nuevo Usuario</i>
         </button>
       </div>
 
@@ -469,7 +469,7 @@ const Usuarios: React.FC = () => {
             <div className="modal-body">
 
               <div className="perfil-campo">
-                <label>Nombre / Razón Social *</label>
+                <label>Nombre *</label>
                 <input
                   placeholder="Nombre completo"
                   value={nuevoUsuario.nombre_razon_social}
@@ -535,6 +535,10 @@ const Usuarios: React.FC = () => {
                   <option value="">— Seleccionar rol —</option>
                   {roles.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
                 </select>
+              </div>
+
+              <div className="mensaje_campo">
+                <p>Los campos que contengan * son obligatorios</p>
               </div>
 
               {mensajeCrear && (

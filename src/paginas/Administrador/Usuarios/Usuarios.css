@@ -57,6 +57,7 @@
   outline: none;
   min-width: 220px;
   transition: border-color 0.2s;
+  background-color: #ddd;
 }
 
 .usuarios-buscador:focus {
@@ -223,6 +224,11 @@
   gap: 12px;
   max-height: 60vh;
   overflow-y: auto;
+}
+.mensaje_campo {
+  color: #1e1b2e;
+  font-size: 12px;
+  font-style: bold;
 }
 
 .modal-footer {

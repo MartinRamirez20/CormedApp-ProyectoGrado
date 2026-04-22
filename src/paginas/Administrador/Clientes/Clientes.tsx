@@ -58,17 +58,10 @@ const FORM_VACIO: FormCliente = {
 
 const REGISTROS_POR_PAGINA = 10;
 
-/* ── Helpers ────────────────────────────────────────────────────────────── */
-const iniciales = (nombre: string) =>
-  nombre
-    .split(' ')
-    .slice(0, 2)
-    .map(p => p[0]?.toUpperCase() ?? '')
-    .join('');
-
+/* ── Formato Fecha───────────────────────────────────────────────────────── */
 const formatFecha = (iso: string) =>
   new Date(iso).toLocaleDateString('es-CO', {
-    day: '2-digit', month: 'short', year: 'numeric',
+    day: '2-digit', month: 'numeric', year: 'numeric',
   });
 
 /* ── Componente ─────────────────────────────────────────────────────────── */
@@ -302,10 +295,10 @@ const Clientes: React.FC = () => {
       {/* Encabezado */}
       <div className="clientes-header">
         <h2 className="clientes-title">
-          👥 Clientes
+          Clientes
         </h2>
         <button className="btn-nuevo-cliente" onClick={() => { setFormCrear(FORM_VACIO); setMensajeCrear(null); setModalCrear(true); }}>
-          ➕ Nuevo Cliente
+          Nuevo Cliente
         </button>
       </div>
 
@@ -372,7 +365,6 @@ const Clientes: React.FC = () => {
                         {/* Nombre personal con avatar */}
                         <td>
                           <div className="cliente-nombre-cell">
-                            <div className="cliente-avatar">{iniciales(c.nombre_personal)}</div>
                             <div className="cliente-nombre-stack">
                               <span className="cliente-nombre-principal">{c.nombre_personal}</span>
                               {c.correo && (
@@ -397,7 +389,7 @@ const Clientes: React.FC = () => {
                         {/* Vendedor */}
                         <td>
                           <span className="badge-vendedor-link">
-                            🏷️ {c.vendedor_nombre}
+                            {c.vendedor_nombre}
                           </span>
                         </td>
 
@@ -463,7 +455,7 @@ const Clientes: React.FC = () => {
         <div className="modal-overlay" onClick={() => setModalDetalle(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>👤 Detalle del Cliente</h3>
+              <h3>Detalle del Cliente</h3>
               <button className="modal-cerrar" onClick={() => setModalDetalle(null)}>✕</button>
             </div>
             <div className="modal-body">
@@ -485,7 +477,7 @@ const Clientes: React.FC = () => {
               <p className="detalle-seccion-titulo">Vendedor</p>
               <div className="detalle-fila">
                 <span>Registrado por</span>
-                <strong><span className="badge-vendedor-link">🏷️ {modalDetalle.vendedor_nombre}</span></strong>
+                <strong><span className="badge-vendedor-link">{modalDetalle.vendedor_nombre}</span></strong>
               </div>
 
               <p className="detalle-seccion-titulo">Auditoría</p>
@@ -511,7 +503,7 @@ const Clientes: React.FC = () => {
         <div className="modal-overlay" onClick={() => setModalEditar(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>📝 Editar Cliente</h3>
+              <h3>Editar Cliente</h3>
               <button className="modal-cerrar" onClick={() => setModalEditar(null)}>✕</button>
             </div>
             <div className="modal-body">
@@ -601,7 +593,7 @@ const Clientes: React.FC = () => {
             </div>
             <div className="modal-body">
               <p>¿Estás seguro de eliminar a <strong>{modalEliminar.nombre_personal}</strong>?</p>
-              <p className="clientes-aviso">⚠️ Esta acción no se puede deshacer.</p>
+              <p className="clientes-aviso">Esta acción no se puede deshacer.</p>
             </div>
             <div className="modal-footer">
               <button className="btn-modal-cancelar" onClick={() => setModalEliminar(null)}>Cancelar</button>
@@ -618,7 +610,7 @@ const Clientes: React.FC = () => {
         <div className="modal-overlay" onClick={() => setModalCrear(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>➕ Nuevo Cliente</h3>
+              <h3>Nuevo Cliente</h3>
               <button className="modal-cerrar" onClick={() => setModalCrear(false)}>✕</button>
             </div>
             <div className="modal-body">

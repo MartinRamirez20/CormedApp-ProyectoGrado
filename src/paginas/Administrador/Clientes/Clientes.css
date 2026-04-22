@@ -78,6 +78,7 @@
   outline: none;
   min-width: 240px;
   transition: border-color 0.2s;
+  background-color: #ddd;
 }
 
 .clientes-buscador:focus {
@@ -154,17 +155,20 @@
   margin-right: 4px;
 }
 
-/* ── Badge vendedor ── */
+/* ── Estilo normalizado para vendedor (reemplaza el anterior) ── */
 .badge-vendedor-link {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #e0f2fe;
-  color: #0369a1;
+  /* Eliminamos padding, fondo y bordes */
+  padding: 0; 
+  background: transparent;
+  border-radius: 0;
+  
+  /* Ajustamos fuente al estándar de la tabla */
+  font-size: 13px; 
+  font-weight: 400; /* Peso normal */
+  color: #555;      /* Color gris similar a los otros datos */
 }
 
 /* ── Botones de acción ── */
@@ -463,7 +467,8 @@
 .main-content.dark .cliente-avatar           { background: #2a1a5e; color: #a78bfa; }
 
 .main-content.dark .badge-id                 { background: #1a2a4a; color: #94a3b8; }
-.main-content.dark .badge-vendedor-link      { background: #0c2a3e; color: #38bdf8; }
+/* ── Ajuste para Modo Oscuro ── */
+.main-content.dark .badge-vendedor-link      { background: transparent; color: #e2e8f0; }
 
 .main-content.dark .paginacion-info          { color: #94a3b8; }
 .main-content.dark .btn-pagina               { background: #16213e; border-color: #2d3f6e; color: #e2e8f0; }
