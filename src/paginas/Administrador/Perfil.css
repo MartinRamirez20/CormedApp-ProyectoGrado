@@ -131,6 +131,12 @@
   font-size: 14px;
 }
 
+/* Modificaciones Iconos */
+.icons {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
 /* ── Modo oscuro Perfil ── */
 .main-content.dark .perfil-title {
   color: #e2e8f0;

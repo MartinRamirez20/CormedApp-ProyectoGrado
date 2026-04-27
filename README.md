@@ -241,3 +241,7 @@ instalacion: npm install react-icons
 Se hace cambios en el Sidebar agregando iconos
 
 Esto da paso a la creacion de un menu desplegable
+
+### Modificacion (Dashboard - Administrador)
+
+Se cambian los botones, agregando nuevos iconos y modificando la seccion 'Funciones Principales'

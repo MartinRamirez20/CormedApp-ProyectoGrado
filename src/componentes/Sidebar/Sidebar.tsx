@@ -5,12 +5,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase.ts';
 import './Sidebar.css';
 
-import { MdDashboard } from "react-icons/md";
-import { FaUsersGear } from "react-icons/fa6";
-import { FaUsers } from "react-icons/fa6";
-import { FaBagShopping } from "react-icons/fa6";
-import { FaShoppingCart } from "react-icons/fa";
-import { IoMdMenu } from "react-icons/io";
+import { MdDashboard } from "react-icons/md"; //Dashboard
+import { FaUsersGear } from "react-icons/fa6"; //Usuarios
+import { FaUsers } from "react-icons/fa6"; //Clientes
+import { FaBagShopping } from "react-icons/fa6"; //Tienda
+import { FaShoppingCart } from "react-icons/fa"; // Pedidos
+import { IoMdMenu } from "react-icons/io"; //MenuHamburguesa
 import { IoIosExit } from "react-icons/io"; //CerrarSesion
 
 interface SidebarProps {

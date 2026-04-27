@@ -1,6 +1,12 @@
 import React from 'react';
 import './Dashboard.css';
 
+// Iconos
+import { FaPlus } from "react-icons/fa"; //Boton Crear Pedido
+import { FaUsersGear } from "react-icons/fa6"; //Boton Crear Usuario
+import { FaUsers } from "react-icons/fa6"; //Boton Crear Cliente
+import { FaBagShopping } from "react-icons/fa6"; //Boton Agregar Productos
+
 interface Pedido {
   cliente: string;
   estado: string;
@@ -35,19 +41,23 @@ const Dashboard: React.FC = () => {
       <div className="dashboard-grid">
         {/* Resumen General */}
         <div className="dash-card resumen-card">
-          <h5 className="dash-card-title">Resumen General</h5>
+          <h5 className="dash-card-title">Funciones Principales</h5>
           <div className="resumen-list">
             <button className="resumen-item">
-              <span className="resumen-icon">▶</span>
-              <span>Realizar Nuevo Pedido</span>
+              <FaPlus className="icons"/>
+              <span>Crear Pedidos</span>
             </button>
             <button className="resumen-item">
-              <span className="resumen-icon">📅</span>
-              <span>Calendario de Eventos</span>
+              <FaUsersGear className="icons"/>
+              <span>Crear Usuarios</span>
             </button>
             <button className="resumen-item">
-              <span className="resumen-icon">📝</span>
-              <span>Productos</span>
+              <FaBagShopping className="icons"/>
+              <span>Agregar Productos</span>
+            </button>
+            <button className="resumen-item">
+              <FaUsers className="icons"/>
+              <span>Crear Clientes</span>
             </button>
           </div>
         </div>
