@@ -5,6 +5,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase.ts';
 import './Sidebar.css';
 
+import { MdDashboard } from "react-icons/md";
+import { FaUsersGear } from "react-icons/fa6";
+import { FaUsers } from "react-icons/fa6";
+import { FaBagShopping } from "react-icons/fa6";
+import { FaShoppingCart } from "react-icons/fa";
+import { IoMdMenu } from "react-icons/io";
+import { IoIosExit } from "react-icons/io"; //CerrarSesion
+
 interface SidebarProps {
   onCerrarSesion: () => void;
   rol: 'administrador' | 'vendedor' | 'usuario';
@@ -18,16 +26,16 @@ interface UsuarioInfo {
 const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
   const location = useLocation();
   const [usuario, setUsuario] = useState<UsuarioInfo>({ nombre: '...', correo: '' });
+  const [collapsed, setCollapsed] = useState(false); // ← nuevo estado hamburguesa
 
-  const [usuariosExp,   setUsuariosExp]   = useState(false);
-  const [tiendaExp,     setTiendaExp]     = useState(false);
-  const [pedidosExp,    setPedidosExp]    = useState(false);
+  const [usuariosExp, setUsuariosExp] = useState(false);
+  const [tiendaExp,   setTiendaExp]   = useState(false);
+  const [pedidosExp,  setPedidosExp]  = useState(false);
 
-  // Prefijo de ruta según rol
   const baseMap: Record<string, string> = {
-  administrador: '/admin',
-  vendedor:      '/vendedor',
-  usuario:       '/usuario',
+    administrador: '/admin',
+    vendedor:      '/vendedor',
+    usuario:       '/usuario',
   };
   const base = baseMap[rol] ?? `/${rol}`;
 
@@ -49,13 +57,31 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Al colapsar, también cerramos todos los submenús abiertos
+  const handleCollapse = () => {
+    setCollapsed(prev => {
+      if (!prev) {
+        setUsuariosExp(false);
+        setTiendaExp(false);
+        setPedidosExp(false);
+      }
+      return !prev;
+    });
+  };
+
   return (
-    <aside className="sidebar">
-      <div className="sidebar-user">
-        <div className="sidebar-user-info">
-          <p className="sidebar-user-name">{usuario.nombre}</p>
-          <p className="sidebar-user-email">{usuario.correo}</p>
-        </div>
+    <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
+      {/* ── Header: perfil + botón hamburguesa ── */}
+      <div className="sidebar-header">
+        {!collapsed && (
+          <div className="sidebar-user-info">
+            <p className="sidebar-user-name">{usuario.nombre}</p>
+            <p className="sidebar-user-email">{usuario.correo}</p>
+          </div>
+        )}
+        <button className="sidebar-hamburger" onClick={handleCollapse} title="Menú">
+          <IoMdMenu />
+        </button>
       </div>
 
       <hr className="sidebar-divider" />
@@ -63,60 +89,92 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
       <nav className="sidebar-nav">
 
         {/* Dashboard — todos los roles */}
-        <Link to={`${base}/dashboard`} className={`sidebar-link ${isActive(`${base}/dashboard`) ? 'active' : ''}`}>
-          <i className="bi bi-speedometer2"></i>
-          <span>Dashboard</span>
+        <Link
+          to={`${base}/dashboard`}
+          className={`sidebar-link ${isActive(`${base}/dashboard`) ? 'active' : ''}`}
+          title="Dashboard"
+        >
+          <MdDashboard className="sidebar-icon" />
+          {!collapsed && <span>Dashboard</span>}
         </Link>
+
         {/* ── Solo Administrador ── */}
         {rol === 'administrador' && (
           <>
             <div className="sidebar-section">
-              <button className="sidebar-link sidebar-toggle" onClick={() => setUsuariosExp(!usuariosExp)}>
-                <i className="bi bi-people"></i>
-                <span>Usuarios</span>
-                <i className={`bi bi-chevron-${usuariosExp ? 'down' : 'right'} sidebar-chevron`}></i>
+              <button
+                className="sidebar-link sidebar-toggle"
+                onClick={() => !collapsed && setUsuariosExp(!usuariosExp)}
+                title="Usuarios"
+              >
+                <FaUsersGear className="sidebar-icon" />
+                {!collapsed && (
+                  <>
+                    <span>Usuarios</span>
+                    <i className={`bi bi-chevron-${usuariosExp ? 'down' : 'right'} sidebar-chevron`}></i>
+                  </>
+                )}
               </button>
-              {usuariosExp && (
+              {!collapsed && usuariosExp && (
                 <div className="sidebar-submenu">
                   <Link to={`${base}/usuarios`} className={`sidebar-sublink ${isActive(`${base}/usuarios`) ? 'active' : ''}`}>Todos</Link>
-                  <Link to={`${base}/roles`} className={`sidebar-sublink ${isActive(`${base}/roles`) ? 'active' : ''}`}>Roles</Link>
+                  <Link to={`${base}/roles`}    className={`sidebar-sublink ${isActive(`${base}/roles`)    ? 'active' : ''}`}>Roles</Link>
                 </div>
               )}
             </div>
 
             <div className="sidebar-section">
-              <button className="sidebar-link sidebar-toggle" onClick={() => setTiendaExp(!tiendaExp)}>
-                <i className="bi bi-shop"></i>
-                <span>Tienda</span>
-                <i className={`bi bi-chevron-${tiendaExp ? 'down' : 'right'} sidebar-chevron`}></i>
+              <button
+                className="sidebar-link sidebar-toggle"
+                onClick={() => !collapsed && setTiendaExp(!tiendaExp)}
+                title="Tienda"
+              >
+                <FaBagShopping className="sidebar-icon" />
+                {!collapsed && (
+                  <>
+                    <span>Tienda</span>
+                    <i className={`bi bi-chevron-${tiendaExp ? 'down' : 'right'} sidebar-chevron`}></i>
+                  </>
+                )}
               </button>
-              {tiendaExp && (
+              {!collapsed && tiendaExp && (
                 <div className="sidebar-submenu">
-                  <Link to={`${base}/tienda`} className={`sidebar-sublink ${isActive(`${base}/tienda`) ? 'active' : ''}`}>Todos</Link>
+                  <Link to={`${base}/tienda`}            className={`sidebar-sublink ${isActive(`${base}/tienda`)            ? 'active' : ''}`}>Todos</Link>
                   <Link to={`${base}/tienda/categorias`} className={`sidebar-sublink ${isActive(`${base}/tienda/categorias`) ? 'active' : ''}`}>Categorías</Link>
-                  <Link to={`${base}/tienda/faltantes`} className={`sidebar-sublink ${isActive(`${base}/tienda/faltantes`) ? 'active' : ''}`}>Faltantes</Link>
+                  <Link to={`${base}/tienda/faltantes`}  className={`sidebar-sublink ${isActive(`${base}/tienda/faltantes`)  ? 'active' : ''}`}>Faltantes</Link>
                 </div>
               )}
             </div>
 
             <div className="sidebar-section">
-              <button className="sidebar-link sidebar-toggle" onClick={() => setPedidosExp(!pedidosExp)}>
-                <i className="bi bi-cart3"></i>
-                <span>Pedidos</span>
-                <i className={`bi bi-chevron-${pedidosExp ? 'down' : 'right'} sidebar-chevron`}></i>
+              <button
+                className="sidebar-link sidebar-toggle"
+                onClick={() => !collapsed && setPedidosExp(!pedidosExp)}
+                title="Pedidos"
+              >
+                <FaShoppingCart className="sidebar-icon" />
+                {!collapsed && (
+                  <>
+                    <span>Pedidos</span>
+                    <i className={`bi bi-chevron-${pedidosExp ? 'down' : 'right'} sidebar-chevron`}></i>
+                  </>
+                )}
               </button>
-              {pedidosExp && (
+              {!collapsed && pedidosExp && (
                 <div className="sidebar-submenu">
-                  <Link to={`${base}/pedidos`} className={`sidebar-sublink ${isActive(`${base}/pedidos`) ? 'active' : ''}`}>Pedidos</Link>
+                  <Link to={`${base}/pedidos`}         className={`sidebar-sublink ${isActive(`${base}/pedidos`)         ? 'active' : ''}`}>Pedidos</Link>
                   <Link to={`${base}/pedidos/ordenes`} className={`sidebar-sublink ${isActive(`${base}/pedidos/ordenes`) ? 'active' : ''}`}>Órdenes de compra</Link>
                 </div>
               )}
             </div>
 
-            {/* ── Sección de Clientes como Botón Directo ── */}
-            <Link to={`${base}/clientes`} className={`sidebar-link ${isActive(`${base}/clientes`) ? 'active' : ''}`}>
-              <i className="bi bi-file-earmark-text"></i>
-              <span>Clientes</span>
+            <Link
+              to={`${base}/clientes`}
+              className={`sidebar-link ${isActive(`${base}/clientes`) ? 'active' : ''}`}
+              title="Clientes"
+            >
+              <FaUsers className="sidebar-icon" />
+              {!collapsed && <span>Clientes</span>}
             </Link>
           </>
         )}
@@ -125,28 +183,44 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
         {rol === 'vendedor' && (
           <>
             <div className="sidebar-section">
-              <button className="sidebar-link sidebar-toggle" onClick={() => setTiendaExp(!tiendaExp)}>
-                <i className="bi bi-shop"></i>
-                <span>Tienda</span>
-                <i className={`bi bi-chevron-${tiendaExp ? 'down' : 'right'} sidebar-chevron`}></i>
+              <button
+                className="sidebar-link sidebar-toggle"
+                onClick={() => !collapsed && setTiendaExp(!tiendaExp)}
+                title="Tienda"
+              >
+                <FaBagShopping className="sidebar-icon" />
+                {!collapsed && (
+                  <>
+                    <span>Tienda</span>
+                    <i className={`bi bi-chevron-${tiendaExp ? 'down' : 'right'} sidebar-chevron`}></i>
+                  </>
+                )}
               </button>
-              {tiendaExp && (
+              {!collapsed && tiendaExp && (
                 <div className="sidebar-submenu">
-                  <Link to={`${base}/tienda`} className={`sidebar-sublink ${isActive(`${base}/tienda`) ? 'active' : ''}`}>Catálogo</Link>
+                  <Link to={`${base}/tienda`}           className={`sidebar-sublink ${isActive(`${base}/tienda`)           ? 'active' : ''}`}>Catálogo</Link>
                   <Link to={`${base}/tienda/faltantes`} className={`sidebar-sublink ${isActive(`${base}/tienda/faltantes`) ? 'active' : ''}`}>Faltantes</Link>
                 </div>
               )}
             </div>
 
             <div className="sidebar-section">
-              <button className="sidebar-link sidebar-toggle" onClick={() => setPedidosExp(!pedidosExp)}>
-                <i className="bi bi-cart3"></i>
-                <span>Pedidos</span>
-                <i className={`bi bi-chevron-${pedidosExp ? 'down' : 'right'} sidebar-chevron`}></i>
+              <button
+                className="sidebar-link sidebar-toggle"
+                onClick={() => !collapsed && setPedidosExp(!pedidosExp)}
+                title="Pedidos"
+              >
+                <FaShoppingCart className="sidebar-icon" />
+                {!collapsed && (
+                  <>
+                    <span>Pedidos</span>
+                    <i className={`bi bi-chevron-${pedidosExp ? 'down' : 'right'} sidebar-chevron`}></i>
+                  </>
+                )}
               </button>
-              {pedidosExp && (
+              {!collapsed && pedidosExp && (
                 <div className="sidebar-submenu">
-                  <Link to={`${base}/pedidos`} className={`sidebar-sublink ${isActive(`${base}/pedidos`) ? 'active' : ''}`}>Mis Pedidos</Link>
+                  <Link to={`${base}/pedidos`}         className={`sidebar-sublink ${isActive(`${base}/pedidos`)         ? 'active' : ''}`}>Mis Pedidos</Link>
                   <Link to={`${base}/pedidos/ordenes`} className={`sidebar-sublink ${isActive(`${base}/pedidos/ordenes`) ? 'active' : ''}`}>Órdenes de compra</Link>
                 </div>
               )}
@@ -160,16 +234,18 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
             <Link
               to={`${base}/tienda`}
               className={`sidebar-link ${isActive(`${base}/tienda`) ? 'active' : ''}`}
+              title="Catálogo"
             >
-              <i className="bi bi-shop"></i>
-              <span>Catálogo</span>
+              <FaBagShopping className="sidebar-icon" />
+              {!collapsed && <span>Catálogo</span>}
             </Link>
             <Link
               to={`${base}/pedidos`}
               className={`sidebar-link ${isActive(`${base}/pedidos`) ? 'active' : ''}`}
+              title="Mis Pedidos"
             >
-              <i className="bi bi-cart3"></i>
-              <span>Mis Pedidos</span>
+              <FaShoppingCart className="sidebar-icon" />
+              {!collapsed && <span>Mis Pedidos</span>}
             </Link>
           </>
         )}
@@ -178,9 +254,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
 
       <div className="sidebar-footer">
         <hr className="sidebar-divider" />
-        <button className="sidebar-link sidebar-signout" onClick={onCerrarSesion}>
-          <i className="bi bi-box-arrow-right"></i>
-          <span>Cerrar Sesión</span>
+        <button className="sidebar-link sidebar-signout" onClick={onCerrarSesion} title="Cerrar Sesión">
+          <IoIosExit className="sidebar-icon" />
+          {!collapsed && <span>Cerrar Sesión</span>}
         </button>
       </div>
     </aside>

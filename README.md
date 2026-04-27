@@ -23,6 +23,8 @@ npm install bootstrap-icons
 
 npm i react-router-dom
 
+npm install react-icons
+
 
 ## AVANCES DEL PROYECTO
 
@@ -219,10 +221,23 @@ Se crea un campo JSONB para guardar el detalle de los ítems del pedido (evita u
 No se que tan bueno sea.
 
 
-### Se busca dar solucion al problema con 'Recuperar Contraseña' (26/04/2026)
+### Se busca dar solucion al problema con 'Recuperar Contraseña' y otros cambios (26/04/2026)
 
 Se modifica el App.tsx agregando un UseEffect (167)
 
 Modificacion RestablecerPassword.tsx
 
+SOLUCIONADO - Se va a perfil y desde alli se cambia la contraseña
+
 Adicionalmente en el index.html se cambia el title a CormedApp
+
+Tambien se cambia el favicon con uno creado por Gemini.
+
+
+### Implementacion react-icons (26/04/2026)
+
+instalacion: npm install react-icons
+
+Se hace cambios en el Sidebar agregando iconos
+
+Esto da paso a la creacion de un menu desplegable
