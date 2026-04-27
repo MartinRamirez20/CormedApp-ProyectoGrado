@@ -206,3 +206,19 @@ Modificacion de estilos en letras y barra buscadora.
 Se hace la creacion de esta seccion, hace falta agregarla al Sidebar.tsx y al App.tsx
 
 Ya funciona xd
+
+### Modificaciones en seccion Perfil.tsx (22/04/2026)
+
+Se cambio: 'Nombre / Razon Social' a 'Nombre'
+
+
+### Creacion Pedidos (24/04/2026)
+
+Se crea un campo JSONB para guardar el detalle de los ítems del pedido (evita una tabla extra por ahora y es flexible)
+
+No se que tan bueno sea.
+
+
+### Se busca dar solucion al problema con 'Recuperar Contraseña' (26/04/2026)
+
+

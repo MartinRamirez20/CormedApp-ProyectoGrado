@@ -148,7 +148,7 @@ const Perfil: React.FC = () => {
           <h5 className="dash-card-title">Datos Personales</h5>
 
           <div className="perfil-campo">
-            <label>Nombre / Razón Social</label>
+            <label>Nombre</label>
             <input
               name="nombre_razon_social"
               value={form.nombre_razon_social}
@@ -168,7 +168,7 @@ const Perfil: React.FC = () => {
             />
             {form.correo !== datos.correo && (
               <span className="perfil-aviso">
-                ⚠️ Se enviará un enlace de confirmación al nuevo correo.
+                Se enviará un enlace de confirmación al nuevo correo.
               </span>
             )}
           </div>
