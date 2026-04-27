@@ -221,4 +221,8 @@ No se que tan bueno sea.
 
 ### Se busca dar solucion al problema con 'Recuperar Contraseña' (26/04/2026)
 
+Se modifica el App.tsx agregando un UseEffect (167)
 
+Modificacion RestablecerPassword.tsx
+
+Adicionalmente en el index.html se cambia el title a CormedApp

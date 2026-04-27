@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { supabase } from './supabase.ts';
+import './App.css';
 
 import { useCallback} from 'react'; //Para el hook inactividad
 import { useInactividad } from './hooks/useInactividad';
@@ -23,8 +25,6 @@ import PerfilVendedor from './paginas/Vendedor/Perfil';
 import UsuarioLayout    from './paginas/Usuario/layout/MainLayout';
 import UsuarioDashboard from './paginas/Usuario/Dashboard';
 
-import { supabase } from './supabase.ts';
-import './App.css';
 
 type AuthVista = 'login' | 'recuperar-email';
 type Rol = 'administrador' | 'vendedor' | 'usuario' | null;
@@ -163,6 +163,21 @@ function App() {
     setCargando(false);
     });
   }, []);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, _session) => {
+      console.log("Evento de Auth:", event); // Para que veas en consola qué pasa
+      
+      if (event === 'PASSWORD_RECOVERY') {
+        // Si Supabase detecta que vienes del correo, te manda aquí
+        navigate('/restablecer-password', { replace: true });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   // ── Login ──────────────────────────────────────────────────────────────────
   const handleLogin = async (email: string, password: string) => {

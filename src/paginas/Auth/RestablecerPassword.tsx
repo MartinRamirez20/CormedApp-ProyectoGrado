@@ -42,10 +42,10 @@ const RestablecerPassword: React.FC<RestablecerPasswordProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMensaje('');
-    
-    const error = validarPassword();
-    if (error) {
-      setMensaje(`❌ ${error}`);
+  
+    const errorValidacion = validarPassword();
+    if (errorValidacion) {
+      setMensaje(`${errorValidacion}`);
       return;
     }
 
@@ -53,25 +53,19 @@ const RestablecerPassword: React.FC<RestablecerPasswordProps> = ({
 
     try {
       if (onRestablecer) {
+        // Llamamos a la función que conecta con Supabase
         const resultado = await onRestablecer(nuevaPassword, token);
-        
+      
         if (resultado) {
           setExito(true);
-          setMensaje('✅ ¡Contraseña restablecida exitosamente!');
+          setMensaje('¡Contraseña restablecida exitosamente!');
         } else {
-          setMensaje('❌ El enlace ha expirado o es inválido. Solicita uno nuevo.');
+          setMensaje('No se pudo actualizar. El enlace puede haber expirado.');
         }
-      } else {
-        // Simulación sin backend
-        setTimeout(() => {
-          setExito(true);
-          setMensaje('✅ ¡Contraseña restablecida exitosamente!');
-          setLoading(false);
-        }, 1500);
-        return;
       }
-    } catch (error) {
-      setMensaje('❌ Ocurrió un error. Por favor, intenta nuevamente.');
+    } catch (error: any) {
+      // Si Supabase devuelve un error específico (ej: password muy débil según sus políticas)
+      setMensaje(`❌ ${error.message || 'Ocurrió un error inesperado.'}`);
     } finally {
       setLoading(false);
     }
