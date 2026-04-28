@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../../supabase.ts';
 import './Usuarios.css';
 
+//Icons
+import { FaSearch } from "react-icons/fa"; // Busqueda
+import { FaEdit } from "react-icons/fa"; //Editar
+import { FaTrash } from "react-icons/fa"; // Eliminar
+
 interface RolSimple {
   nombre: string;
 }
@@ -311,13 +316,13 @@ const Usuarios: React.FC = () => {
                     <td>
                       <div className="usuarios-acciones">
                         <button className="btn-accion btn-ver" title="Ver detalle" onClick={() => setModalDetalle(u)}>
-                          <i className="bi bi-eye"></i> 🔍
+                          <i className="bi bi-eye"><FaSearch className='icons'/></i>
                         </button>
                         <button className="btn-accion btn-editar" title="Editar" onClick={() => setModalEditar({ ...u })}>
-                          <i className="bi bi-pencil"></i> 📝
+                          <i className="bi bi-pencil"><FaEdit className='icons'/></i>
                         </button>
                         <button className="btn-accion btn-eliminar" title="Eliminar" onClick={() => setModalEliminar(u)}>
-                          <i className="bi bi-trash"></i> 🗑️
+                          <i className="bi bi-trash"><FaTrash className='icons'/></i>
                         </button>
                       </div>
                     </td>
@@ -447,7 +452,7 @@ const Usuarios: React.FC = () => {
             </div>
             <div className="modal-body">
               <p>¿Estás seguro de que deseas eliminar a <strong>{modalEliminar.nombre_razon_social}</strong>?</p>
-              <p className="usuarios-aviso">⚠️ Esta acción no se puede deshacer.</p>
+              <p className="usuarios-aviso">Esta acción no se puede deshacer.</p>
             </div>
             <div className="modal-footer">
               <button className="btn-modal-cancelar" onClick={() => setModalEliminar(null)}>Cancelar</button>

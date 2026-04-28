@@ -198,7 +198,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
               </button>
               {!collapsed && tiendaExp && (
                 <div className="sidebar-submenu">
-                  <Link to={`${base}/tienda`}           className={`sidebar-sublink ${isActive(`${base}/tienda`)           ? 'active' : ''}`}>Catálogo</Link>
+                  <Link to={`${base}/tienda`} className={`sidebar-sublink ${isActive(`${base}/tienda`)           ? 'active' : ''}`}>Catálogo</Link>
                   <Link to={`${base}/tienda/faltantes`} className={`sidebar-sublink ${isActive(`${base}/tienda/faltantes`) ? 'active' : ''}`}>Faltantes</Link>
                 </div>
               )}

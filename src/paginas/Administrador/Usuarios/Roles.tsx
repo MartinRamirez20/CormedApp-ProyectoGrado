@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../../supabase.ts';
 import './Roles.css';
 
+//Iconos
+import { MdAdminPanelSettings } from "react-icons/md"; //Icono-admin
+import { MdSell } from "react-icons/md"; //Icono-vendedor
+import { MdFactCheck } from "react-icons/md"; //Icono-facturador
+
+
 /* ── Tipos ──────────────────────────────────────────────────────────────── */
 interface Rol {
   id: number;
@@ -26,10 +32,10 @@ interface RolConConteo extends Rol {
 
 const REGISTROS_POR_PAGINA = 10;
 
-const ICONOS_ROL: Record<string, string> = {
-  administrador: '🛡️',
-  facturador:    '🧾',
-  vendedor:      '🏷️',
+const ICONOS_ROL: Record<string, React.ReactNode> = {
+  administrador: <MdAdminPanelSettings/>,
+  facturador:    <MdSell />,
+  vendedor:      <MdFactCheck />,
 };
 
 const COLORES_ROL: Record<string, { bg: string; color: string; border: string }> = {

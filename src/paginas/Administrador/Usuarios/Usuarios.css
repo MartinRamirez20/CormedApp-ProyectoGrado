@@ -114,6 +114,12 @@
   gap: 6px;
 }
 
+/* Modificaciones Iconos */
+.icons {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
 .btn-accion {
   width: 32px;
   height: 32px;
@@ -224,6 +230,7 @@
   gap: 12px;
   max-height: 60vh;
   overflow-y: auto;
+  color: #1e1b2e;
 }
 .mensaje_campo {
   color: #1e1b2e;

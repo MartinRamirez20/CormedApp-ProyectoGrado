@@ -5,14 +5,14 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard-page">
       <div className="dashboard-page-header">
-        <h2 className="dashboard-page-title">Dashboard — Usuario</h2>
+        <h2 className="dashboard-page-title">Dashboard — Facturador</h2>
       </div>
 
       <div className="dashboard-grid">
 
         {/* Acciones disponibles */}
         <div className="dash-card resumen-card">
-          <h5 className="dash-card-title">¿Qué deseas hacer?</h5>
+          <h5 className="dash-card-title">Funciones Principales</h5>
           <div className="resumen-list">
             <button className="resumen-item">
               <span className="resumen-icon">🛒</span>

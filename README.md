@@ -245,3 +245,12 @@ Esto da paso a la creacion de un menu desplegable
 ### Modificacion (Dashboard - Administrador)
 
 Se cambian los botones, agregando nuevos iconos y modificando la seccion 'Funciones Principales'
+
+
+### Cambios Iconos y creacion Pedidos (27/04/2026)
+
+Se realizan mas cambios en los iconos, se planea reemplazar todos los emojis por iconos de la libreria react-icons.
+
+Se crean los archivos Pedidos.tsx y Pedidos.css
+
+Se conectan los archivos al Sidebar y se agregan al App.tsx
