@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 // Iconos
@@ -15,6 +16,9 @@ interface Pedido {
 }
 
 const Dashboard: React.FC = () => {
+
+  const navigate = useNavigate();
+
   const pedidos: Pedido[] = [
     { cliente: 'Geronimo Guillizzoni', estado: 'Pendiente', monto: '$30,000', numero: 1 },
     { cliente: 'Founder & CEO\nMarco Botton', estado: 'Confirmado', monto: '$40,000', numero: 2 },
@@ -43,19 +47,19 @@ const Dashboard: React.FC = () => {
         <div className="dash-card resumen-card">
           <h5 className="dash-card-title">Funciones Principales</h5>
           <div className="resumen-list">
-            <button className="resumen-item">
+            <button className="resumen-item" onClick={() => navigate('/admin/pedidos', {state:{abrirModalCrear: true}})}>
               <FaPlus className="icons"/>
               <span>Crear Pedidos</span>
             </button>
-            <button className="resumen-item">
+            <button className="resumen-item" onClick={() => navigate('/admin/usuarios', {state:{abrirModalCrear: true}})}>
               <FaUsersGear className="icons"/>
               <span>Crear Usuarios</span>
             </button>
-            <button className="resumen-item">
+            <button className="resumen-item" onClick={() => navigate('/admin/tienda', {state:{abrirModalCrear: true}})}>
               <FaBagShopping className="icons"/>
               <span>Agregar Productos</span>
             </button>
-            <button className="resumen-item">
+            <button className="resumen-item" onClick={() => navigate('/admin/clientes', {state:{abrirModalCrear: true}})}>
               <FaUsers className="icons"/>
               <span>Crear Clientes</span>
             </button>

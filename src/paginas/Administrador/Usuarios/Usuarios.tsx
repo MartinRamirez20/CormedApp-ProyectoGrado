@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase.ts';
 import './Usuarios.css';
 
@@ -40,6 +41,10 @@ const Usuarios: React.FC = () => {
   const [guardando, setGuardando]         = useState(false);
   const [mensaje, setMensaje]             = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
 
+  //Link Dashboard
+  const location = useLocation(); 
+  const navigate = useNavigate();
+
   //Crear usuarios
   const [modalCrear, setModalCrear] = useState(false);
   const [nuevoUsuario, setNuevoUsuario] = useState({
@@ -58,6 +63,18 @@ const Usuarios: React.FC = () => {
   direccion: 'asc'
 });
 
+  useEffect(() => {
+    // Si en la navegación enviamos el estado 'abrirModalCrear'
+    if (location.state && location.state.abrirModalCrear) {
+      setModalCrear(true); // Activamos el modal
+      
+      // Limpiamos el estado de la navegación para que no se abra 
+      // infinitamente si el usuario refresca la página (F5)
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]); // Solo depende de estos dos hooks
+
+  
   // ── Cargar usuarios ────────────────────────────────────────────────────────
   const cargarUsuarios = async () => {
     setCargando(true);

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase.ts';
 import './Clientes.css';
 
@@ -91,6 +92,10 @@ const Clientes: React.FC = () => {
   const [mensajeEditar, setMensajeEditar] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
   const [mensajeCrear, setMensajeCrear]   = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
 
+  //Link Dashboard
+  const location = useLocation(); 
+  const navigate = useNavigate();
+
   // Ordenamiento
   const [orden, setOrden] = useState<{ columna: ColOrdenable; direccion: 'asc' | 'desc' }>({
     columna: 'id',
@@ -124,6 +129,18 @@ const Clientes: React.FC = () => {
     }
   };
 
+  //Link Dashboard
+    useEffect(() => {
+      // Si en la navegación enviamos el estado 'abrirModalCrear'
+      if (location.state && location.state.abrirModalCrear) {
+        setModalCrear(true); // Activamos el modal
+        
+        // Limpiamos el estado de la navegación para que no se abra 
+        // infinitamente si el usuario refresca la página (F5)
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }, [location, navigate]); // Solo depende de estos dos hooks
+    
   useEffect(() => {
     cargarClientes();
     cargarVendedores();
