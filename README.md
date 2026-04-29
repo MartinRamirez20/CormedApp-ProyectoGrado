@@ -254,3 +254,9 @@ Se realizan mas cambios en los iconos, se planea reemplazar todos los emojis por
 Se crean los archivos Pedidos.tsx y Pedidos.css
 
 Se conectan los archivos al Sidebar y se agregan al App.tsx
+
+Se configuran 3/4 botones de duncionalidades del dashboard
+
+
+### Se empieza el desarrollo de pedidos (28/04/2026)
+

@@ -1,7 +1,7 @@
 // Este Sidebar si esta en uso
 // Se renderiza en el MainLayout de Administrador
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase.ts';
 import './Sidebar.css';
 
@@ -25,6 +25,7 @@ interface UsuarioInfo {
 
 const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [usuario, setUsuario] = useState<UsuarioInfo>({ nombre: '...', correo: '' });
   const [collapsed, setCollapsed] = useState(false); // ← nuevo estado hamburguesa
 
@@ -101,10 +102,45 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
         {/* ── Solo Administrador ── */}
         {rol === 'administrador' && (
           <>
+            <Link
+              to={`${base}/clientes`}
+              className={`sidebar-link ${isActive(`${base}/clientes`) ? 'active' : ''}`}
+              title="Clientes"
+            >
+              <FaUsers className="sidebar-icon" />
+              {!collapsed && <span>Clientes</span>}
+            </Link>
+
+            <Link
+              to={`${base}/tienda`}
+              className={`sidebar-link ${isActive(`${base}/tienda`) ? 'active' : ''}`}
+              title="Tienda"
+            >
+              <FaBagShopping className="sidebar-icon" />
+              {!collapsed && <span>Tienda</span>}
+            </Link>
+
+            <Link
+              to={`${base}/pedidos`}
+              className={`sidebar-link ${isActive(`${base}/pedidos`) ? 'active' : ''}`}
+              title="Pedidos"
+            >
+              <FaShoppingCart className="sidebar-icon" />
+              {!collapsed && <span>Pedidos</span>}
+            </Link>
+
             <div className="sidebar-section">
               <button
-                className="sidebar-link sidebar-toggle"
-                onClick={() => !collapsed && setUsuariosExp(!usuariosExp)}
+                className={`sidebar-link sidebar-toggle ${collapsed && isActive(`${base}/usuarios`) ? 'active' : ''}`}
+                onClick={() => {
+                  if (collapsed) {
+                    // Si está encogido, funciona como un Link directo a Todos los usuarios
+                    navigate(`${base}/usuarios`);
+                  } else {
+                    // Si está expandido, abre/cierra el submenú
+                    setUsuariosExp(!usuariosExp);
+                  }
+                }}
                 title="Usuarios"
               >
                 <FaUsersGear className="sidebar-icon" />
@@ -122,60 +158,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
                 </div>
               )}
             </div>
-
-            <div className="sidebar-section">
-              <button
-                className="sidebar-link sidebar-toggle"
-                onClick={() => !collapsed && setTiendaExp(!tiendaExp)}
-                title="Tienda"
-              >
-                <FaBagShopping className="sidebar-icon" />
-                {!collapsed && (
-                  <>
-                    <span>Tienda</span>
-                    <i className={`bi bi-chevron-${tiendaExp ? 'down' : 'right'} sidebar-chevron`}></i>
-                  </>
-                )}
-              </button>
-              {!collapsed && tiendaExp && (
-                <div className="sidebar-submenu">
-                  <Link to={`${base}/tienda`}            className={`sidebar-sublink ${isActive(`${base}/tienda`)            ? 'active' : ''}`}>Todos</Link>
-                  <Link to={`${base}/tienda/categorias`} className={`sidebar-sublink ${isActive(`${base}/tienda/categorias`) ? 'active' : ''}`}>Categorías</Link>
-                  <Link to={`${base}/tienda/faltantes`}  className={`sidebar-sublink ${isActive(`${base}/tienda/faltantes`)  ? 'active' : ''}`}>Faltantes</Link>
-                </div>
-              )}
-            </div>
-
-            <div className="sidebar-section">
-              <button
-                className="sidebar-link sidebar-toggle"
-                onClick={() => !collapsed && setPedidosExp(!pedidosExp)}
-                title="Pedidos"
-              >
-                <FaShoppingCart className="sidebar-icon" />
-                {!collapsed && (
-                  <>
-                    <span>Pedidos</span>
-                    <i className={`bi bi-chevron-${pedidosExp ? 'down' : 'right'} sidebar-chevron`}></i>
-                  </>
-                )}
-              </button>
-              {!collapsed && pedidosExp && (
-                <div className="sidebar-submenu">
-                  <Link to={`${base}/pedidos`}         className={`sidebar-sublink ${isActive(`${base}/pedidos`)         ? 'active' : ''}`}>Pedidos</Link>
-                  <Link to={`${base}/pedidos/ordenes`} className={`sidebar-sublink ${isActive(`${base}/pedidos/ordenes`) ? 'active' : ''}`}>Órdenes de compra</Link>
-                </div>
-              )}
-            </div>
-
-            <Link
-              to={`${base}/clientes`}
-              className={`sidebar-link ${isActive(`${base}/clientes`) ? 'active' : ''}`}
-              title="Clientes"
-            >
-              <FaUsers className="sidebar-icon" />
-              {!collapsed && <span>Clientes</span>}
-            </Link>
           </>
         )}
 

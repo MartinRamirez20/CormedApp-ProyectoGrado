@@ -17,7 +17,8 @@ import Usuarios from './paginas/Administrador/Usuarios/Usuarios';
 import Roles from './paginas/Administrador/Usuarios/Roles';
 import Clientes from './paginas/Administrador/Clientes/Clientes';
 import Tienda from './paginas/Administrador/Tienda/Tienda';
-import Pedidos from './paginas/Administrador/Pedidos/Pedidos'
+import Pedidos from './paginas/Administrador/Pedidos/Pedidos';
+import CrearPedido from './paginas/Administrador/Pedidos/Crearpedido';
 
 import VendedorLayout    from './paginas/Vendedor/layout/MainLayout';
 import VendedorDashboard from './paginas/Vendedor/Dashboard';
@@ -332,7 +333,10 @@ function App() {
           <Route path="roles" element={<Roles />} /> 
           <Route path="clientes" element={<Clientes />} />
           <Route path="tienda" element={<Tienda />} />
-          <Route path="pedidos" element={<Pedidos />} />
+          <Route path="pedidos">
+            <Route index element={<Pedidos />} />
+            <Route path="crear" element={<CrearPedido />} />
+          </Route>
         </Route>
 
         <Route
