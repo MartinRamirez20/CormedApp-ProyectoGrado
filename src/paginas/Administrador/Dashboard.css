@@ -175,6 +175,59 @@
   accent-color: #512da8;
 }
 
+/* ── Últimos pedidos ── */
+.dash-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.dash-ver-todos {
+  background: none;
+  border: none;
+  color: #512da8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dash-ver-todos:hover { text-decoration: underline; }
+
+.dash-cargando,
+.dash-vacio {
+  font-size: 13px;
+  color: #aaa;
+  padding: 16px 0;
+  text-align: center;
+}
+
+.dash-pedido-row { cursor: pointer; }
+.dash-pedido-row:hover td { background: #faf9ff; }
+
+.dash-referencia {
+  background: #ede9fe;
+  color: #512da8;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.dash-monto {
+  font-weight: 700;
+  color: #1e1b2e;
+  white-space: nowrap;
+}
+
+/* Badge facturado (por si no lo tienes) */
+.badge-facturado {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
 /* ── Modo oscuro Dashboard ── */
 .main-content.dark .dashboard-page-title {
   color: #e2e8f0;

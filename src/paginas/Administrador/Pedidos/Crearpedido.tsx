@@ -19,11 +19,11 @@ interface Cliente {
 
 interface ProductoBD {
   id: number;
-  referencia: string;
+  codigo: string;
   nombre: string;
-  precio_venta: number;
-  iva_porcentaje: number;
-  stock_actual: number;
+  presentacion: string | null;
+  precio: number;
+  iva: number;
   activo: boolean;
 }
 
@@ -118,9 +118,10 @@ const CrearPedido: React.FC = () => {
       // Productos
       const { data: prods } = await supabase
         .from('productos')
-        .select('id, referencia, nombre, precio_venta, iva_porcentaje, stock_actual, activo')
+        .select('id, codigo, nombre, presentacion, precio, iva, activo')
         .eq('activo', true)
         .order('nombre');
+
       if (prods) setProductos(prods as ProductoBD[]);
     };
     cargarTodo();
@@ -144,7 +145,7 @@ const CrearPedido: React.FC = () => {
     setProdFiltrados(
       productos.filter(p =>
         p.nombre.toLowerCase().includes(q) ||
-        p.referencia.toLowerCase().includes(q)
+        p.codigo.toLowerCase().includes(q) // Corrección: era p.referencia
       ).slice(0, 8)
     );
   }, [busqProducto, productos]);
@@ -154,16 +155,16 @@ const CrearPedido: React.FC = () => {
     const yaExiste = lineas.find(l => l.producto_id === prod.id);
     if (yaExiste) {
       // Incrementar cantidad si ya existe
-      cambiarCantidad(prod.id, yaExiste.cantidad + 1, prod.stock_actual);
+      cambiarCantidad(prod.id, yaExiste.cantidad + 1); // se quito prod.stock_actual
     } else {
       const nueva: LineaPedido = {
-        producto_id:    prod.id,
-        referencia:     prod.referencia,
-        nombre:         prod.nombre,
-        cantidad:       1,
-        precio_unitario: prod.precio_venta,
-        iva_porcentaje:  prod.iva_porcentaje,
-        subtotal:        prod.precio_venta,
+        producto_id:     prod.id,
+        referencia:      prod.codigo,
+        nombre:          prod.nombre,
+        cantidad:        1,
+        precio_unitario: prod.precio,
+        iva_porcentaje:  prod.iva,
+        subtotal:        prod.precio,
       };
       setLineas(prev => [...prev, nueva]);
     }
@@ -171,18 +172,13 @@ const CrearPedido: React.FC = () => {
     setDropProducto(false);
   };
 
-  const cambiarCantidad = useCallback((prodId: number, nuevaCant: number, stockMax?: number) => {
+  const cambiarCantidad = useCallback((prodId: number, nuevaCant: number) => {
     if (nuevaCant < 1) return;
     setLineas(prev => prev.map(l => {
       if (l.producto_id !== prodId) return l;
-      const prod = stockMax !== undefined
-        ? productos.find(p => p.id === prodId)
-        : null;
-      const maxStock = prod?.stock_actual ?? stockMax ?? 9999;
-      const cant = Math.min(nuevaCant, maxStock);
-      return { ...l, cantidad: cant, subtotal: cant * l.precio_unitario };
+      return { ...l, cantidad: nuevaCant, subtotal: nuevaCant * l.precio_unitario };
     }));
-  }, [productos]);
+  }, []); // Ya no depende de 'productos'
 
   const cambiarPrecio = (prodId: number, nuevoPrecio: number) => {
     setLineas(prev => prev.map(l =>
@@ -257,7 +253,7 @@ const CrearPedido: React.FC = () => {
 
       {/* ── Encabezado de página ── */}
       <div className="cp-page-header">
-        <button className="cp-btn-volver" onClick={() => navigate('/admin/pedidos/crear')}>
+        <button className="cp-btn-volver" onClick={() => navigate('/admin/pedidos')}>
           ← Volver a Pedidos
         </button>
         <h2 className="cp-page-title">Nuevo Pedido</h2>
@@ -377,18 +373,16 @@ const CrearPedido: React.FC = () => {
                 {prodFiltrados.map(p => (
                   <div
                     key={p.id}
-                    className={`cp-dropdown-item ${p.stock_actual === 0 ? 'cp-drop-sin-stock' : ''}`}
-                    onMouseDown={() => p.stock_actual > 0 && agregarProducto(p)}
+                    className="cp-dropdown-item"
+                    onMouseDown={() => agregarProducto(p)} // Corrección: sin validación de stock
                   >
                     <div className="cp-drop-prod-info">
                       <span className="cp-drop-nombre">{p.nombre}</span>
-                      <span className="cp-drop-sub">{p.referencia}</span>
+                      <span className="cp-drop-sub">{p.codigo}</span> {/* Corrección: p.codigo */}
                     </div>
                     <div className="cp-drop-prod-right">
-                      <span className="cp-drop-precio">{formatCurrency(p.precio_venta)}</span>
-                      <span className={`cp-drop-stock ${p.stock_actual <= 5 ? 'stock-bajo' : ''}`}>
-                        Stock: {p.stock_actual}
-                      </span>
+                      {/* Corrección: es p.precio, no p.precio_venta */}
+                      <span className="cp-drop-precio">{formatCurrency(p.precio)}</span> 
                     </div>
                   </div>
                 ))}
@@ -422,8 +416,6 @@ const CrearPedido: React.FC = () => {
                   </td>
                 </tr>
               ) : lineas.map(l => {
-                const prodBD = productos.find(p => p.id === l.producto_id);
-                const stockMax = prodBD?.stock_actual ?? 9999;
                 return (
                   <tr key={l.producto_id}>
                     <td><span className="ref-tag">{l.referencia}</span></td>
@@ -434,25 +426,23 @@ const CrearPedido: React.FC = () => {
                           className="cp-cant-btn"
                           onClick={() => cambiarCantidad(l.producto_id, l.cantidad - 1)}
                         >−</button>
+                        
                         <input
                           className="cp-cant-input"
                           type="number"
                           min={1}
-                          max={stockMax}
+                          // max={stockMax} <-- ELIMINADO
                           value={l.cantidad}
-                          onChange={e => cambiarCantidad(l.producto_id, Number(e.target.value), stockMax)}
+                          onChange={e => cambiarCantidad(l.producto_id, Number(e.target.value))}
                         />
+                        
                         <button
                           className="cp-cant-btn"
-                          onClick={() => cambiarCantidad(l.producto_id, l.cantidad + 1, stockMax)}
-                          disabled={l.cantidad >= stockMax}
+                          // Ya no le pasamos el tercer parámetro de stockMax
+                          onClick={() => cambiarCantidad(l.producto_id, l.cantidad + 1)} 
+                          // disabled={l.cantidad >= stockMax} <-- ELIMINADO
                         >+</button>
                       </div>
-                      {prodBD && (
-                        <div className={`cp-stock-hint ${prodBD.stock_actual <= 5 ? 'stock-bajo' : ''}`}>
-                          Stock: {prodBD.stock_actual}
-                        </div>
-                      )}
                     </td>
                     <td>
                       <input

@@ -1,38 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../supabase.ts';
 import './Dashboard.css';
 
 // Iconos
-import { FaPlus } from "react-icons/fa"; //Boton Crear Pedido
-import { FaUsersGear } from "react-icons/fa6"; //Boton Crear Usuario
-import { FaUsers } from "react-icons/fa6"; //Boton Crear Cliente
-import { FaBagShopping } from "react-icons/fa6"; //Boton Agregar Productos
+import { FaPlus } from "react-icons/fa";
+import { FaUsersGear, FaUsers, FaBagShopping } from "react-icons/fa6";
 
 interface Pedido {
-  cliente: string;
-  estado: string;
-  monto: string;
-  numero: number;
+  id: number;
+  referencia: string;
+  cliente_nombre: string;
+  monto_total: number;
+  estado: 'pendiente' | 'confirmado' | 'facturado';
+  fecha_creacion: string;
 }
 
-const Dashboard: React.FC = () => {
+const formatCurrency = (v: number) =>
+  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
 
+const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  const pedidos: Pedido[] = [
-    { cliente: 'Geronimo Guillizzoni', estado: 'Pendiente', monto: '$30,000', numero: 1 },
-    { cliente: 'Founder & CEO\nMarco Botton', estado: 'Confirmado', monto: '$40,000', numero: 2 },
-    { cliente: 'Tuttiofore\nHannah Macallan', estado: 'Cancelado', monto: '$120,000', numero: 3 },
-    { cliente: 'Better Half\nValerie Liberty', estado: 'Confirmado', monto: '$50,000', numero: 4 },
-    { cliente: 'Head Chef\nDale Grid Dove', estado: '', monto: '', numero: 0 },
-  ];
+  const [pedidos, setPedidos]   = useState<Pedido[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    const cargarPedidos = async () => {
+      const { data, error } = await supabase
+        .from('pedidos')
+        .select('id, referencia, cliente_nombre, monto_total, estado, fecha_creacion')
+        .order('fecha_creacion', { ascending: false })
+        .limit(5);
+
+      if (!error && data) setPedidos(data as Pedido[]);
+      setCargando(false);
+    };
+    cargarPedidos();
+  }, []);
 
   const getEstadoClass = (estado: string) => {
     switch (estado) {
-      case 'Pendiente':  return 'badge-pendiente';
-      case 'Confirmado': return 'badge-confirmado';
-      case 'Cancelado':  return 'badge-cancelado';
+      case 'pendiente':  return 'badge-pendiente';
+      case 'confirmado': return 'badge-confirmado';
+      case 'facturado':  return 'badge-facturado';
       default:           return '';
+    }
+  };
+
+  const getEstadoLabel = (estado: string) => {
+    switch (estado) {
+      case 'pendiente':  return 'Pendiente';
+      case 'confirmado': return 'Confirmado';
+      case 'facturado':  return 'Facturado';
+      default:           return estado;
     }
   };
 
@@ -43,23 +64,23 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="dashboard-grid">
-        {/* Resumen General */}
+        {/* Funciones Principales */}
         <div className="dash-card resumen-card">
           <h5 className="dash-card-title">Funciones Principales</h5>
           <div className="resumen-list">
-            <button className="resumen-item" onClick={() => navigate('/admin/pedidos', {state:{abrirModalCrear: true}})}>
+            <button className="resumen-item" onClick={() => navigate('/admin/pedidos/crear')}>
               <FaPlus className="icons"/>
               <span>Crear Pedidos</span>
             </button>
-            <button className="resumen-item" onClick={() => navigate('/admin/usuarios', {state:{abrirModalCrear: true}})}>
+            <button className="resumen-item" onClick={() => navigate('/admin/usuarios', { state: { abrirModalCrear: true } })}>
               <FaUsersGear className="icons"/>
               <span>Crear Usuarios</span>
             </button>
-            <button className="resumen-item" onClick={() => navigate('/admin/tienda', {state:{abrirModalCrear: true}})}>
+            <button className="resumen-item" onClick={() => navigate('/admin/tienda', { state: { abrirModalCrear: true } })}>
               <FaBagShopping className="icons"/>
               <span>Agregar Productos</span>
             </button>
-            <button className="resumen-item" onClick={() => navigate('/admin/clientes', {state:{abrirModalCrear: true}})}>
+            <button className="resumen-item" onClick={() => navigate('/admin/clientes', { state: { abrirModalCrear: true } })}>
               <FaUsers className="icons"/>
               <span>Crear Clientes</span>
             </button>
@@ -70,42 +91,54 @@ const Dashboard: React.FC = () => {
         <div className="dash-card pedidos-card">
           <div className="dash-card-header">
             <h5 className="dash-card-title">Últimos Pedidos</h5>
+            <button
+              className="dash-ver-todos"
+              onClick={() => navigate('/admin/pedidos')}
+            >
+              Ver todos →
+            </button>
           </div>
+
           <div className="table-wrapper">
-            <table className="pedidos-table">
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Estado</th>
-                  <th>Monto</th>
-                  <th>#</th>
-                  <th>Ver</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pedidos.map((pedido, index) => (
-                  <tr key={index}>
-                    <td className="cliente-cell">
-                      {pedido.cliente.split('\n').map((line, i) => (
-                        <div key={i}>{line}</div>
-                      ))}
-                    </td>
-                    <td>
-                      {pedido.estado && (
-                        <span className={`estado-badge ${getEstadoClass(pedido.estado)}`}>
-                          {pedido.estado}
-                        </span>
-                      )}
-                    </td>
-                    <td>{pedido.monto}</td>
-                    <td>{pedido.numero || 'N/A'}</td>
-                    <td>
-                      <input type="checkbox" className="checkbox-ver" />
-                    </td>
+            {cargando ? (
+              <p className="dash-cargando">Cargando pedidos...</p>
+            ) : pedidos.length === 0 ? (
+              <p className="dash-vacio">No hay pedidos registrados aún.</p>
+            ) : (
+              <table className="pedidos-table">
+                <thead>
+                  <tr>
+                    <th>Referencia</th>
+                    <th>Cliente</th>
+                    <th>Estado</th>
+                    <th>Monto</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {pedidos.map(p => (
+                    <tr
+                      key={p.id}
+                      className="dash-pedido-row"
+                      onClick={() => navigate('/admin/pedidos')}
+                      title="Ir a pedidos"
+                    >
+                      <td>
+                        <span className="dash-referencia">{p.referencia}</span>
+                      </td>
+                      <td className="cliente-cell">
+                        <div>{p.cliente_nombre}</div>
+                      </td>
+                      <td>
+                        <span className={`estado-badge ${getEstadoClass(p.estado)}`}>
+                          {getEstadoLabel(p.estado)}
+                        </span>
+                      </td>
+                      <td className="dash-monto">{formatCurrency(p.monto_total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 

@@ -260,3 +260,12 @@ Se configuran 3/4 botones de duncionalidades del dashboard
 
 ### Se empieza el desarrollo de pedidos (28/04/2026)
 
+SE COMPLETA EL DESARROLLO DE PEDIDOS
+
+notas: 
+
+Arreglar estilos en la creacion de pedidos en la seccion cantidad.
+
+Agregar funcion para ver el stock de los productos a la hora
+
+SE DEBE AGREGAR 'STOCK' A LA TABLA DE PRODUCTOS!!! IMPORTANTISIMO
