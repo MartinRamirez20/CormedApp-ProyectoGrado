@@ -3,10 +3,8 @@ import { supabase } from '../../../supabase.ts';
 import './Roles.css';
 
 //Iconos
-import { MdAdminPanelSettings } from "react-icons/md"; //Icono-admin
-import { MdSell } from "react-icons/md"; //Icono-vendedor
-import { MdFactCheck } from "react-icons/md"; //Icono-facturador
-
+import { MdAdminPanelSettings, MdFactCheck, MdSell,} from "react-icons/md";
+import { FaEye, FaSortUp, FaSortDown } from 'react-icons/fa';
 
 /* ── Tipos ──────────────────────────────────────────────────────────────── */
 interface Rol {
@@ -146,8 +144,12 @@ const Roles: React.FC = () => {
     setOrden({ columna, direccion: esAsc ? 'desc' : 'asc' });
   };
 
-  const iconoOrden = (col: keyof UsuarioDeRol) =>
-    orden.columna === col ? (orden.direccion === 'asc' ? ' 🔼' : ' 🔽') : '';
+  const iconoOrden = (col: keyof UsuarioDeRol) => {
+    if (orden.columna !== col) return null;
+    return orden.direccion === 'asc' ? 
+      <FaSortUp style={{ marginLeft: '4px', verticalAlign: 'middle' }} /> : 
+      <FaSortDown style={{ marginLeft: '4px', verticalAlign: 'middle' }} />;
+  };
 
   /* ── Paginación ────────────────────────────────────────────────────────── */
   const totalPaginas = Math.ceil(filtrados.length / REGISTROS_POR_PAGINA);
@@ -260,7 +262,7 @@ const Roles: React.FC = () => {
                   <thead>
                     <tr>
                       <th onClick={() => handleSort('consecutivo')} style={{ cursor: 'pointer' }}>
-                        #{iconoOrden('consecutivo')}
+                        ID{iconoOrden('consecutivo')}
                       </th>
                       <th onClick={() => handleSort('nombre_razon_social')} style={{ cursor: 'pointer' }}>
                         Nombre{iconoOrden('nombre_razon_social')}
@@ -294,7 +296,7 @@ const Roles: React.FC = () => {
                               title="Ver detalle"
                               onClick={() => setModalDetalle(u)}
                             >
-                              🔍
+                              <FaEye />
                             </button>
                           </div>
                         </td>

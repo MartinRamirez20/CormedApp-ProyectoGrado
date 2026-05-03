@@ -24,6 +24,7 @@ interface ProductoBD {
   presentacion: string | null;
   precio: number;
   iva: number;
+  stock: number; // Asegúrate de que se llame 'stock' y no 'stock_actual'
   activo: boolean;
 }
 

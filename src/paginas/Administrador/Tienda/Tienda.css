@@ -199,9 +199,25 @@
   color: #1e1b2e;
 }
 
-.producto-presentacion {
-  font-size: 11px;
-  color: #888;
+/* ── Badge Stock ── */
+.badge-stock {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.badge-stock--bajo {
+  background: #fef08a;
+  color: #854d0e;
+}
+
+.badge-stock--agotado {
+  background: #fecaca;
+  color: #991b1b;
 }
 
 /* ── Precio ── */
@@ -241,27 +257,49 @@
 /* ── Botones de acción ── */
 .tienda-acciones {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  align-items: center;
 }
 
 .btn-accion {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
+  padding: 0; /* Elimina paddings que puedan desplazar el icono */
 }
 
-.btn-accion:hover { opacity: 0.8; }
+/* Estilo específico para los iconos dentro del botón */
+.btn-accion svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  fill: currentColor; /* Asegura que el icono use el color definido en el botón */
+}
 
-.btn-ver      { background: #64748b; color: #fff; }
-.btn-editar   { background: #512da8; color: #fff; }
-.btn-eliminar { background: #e53935; color: #fff; }
+.btn-accion:hover {
+  opacity: 0.9;
+  transform: translateY(-2px); /* Un pequeño efecto de elevación */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-ver      { background: #64748b; color: #ffffff !important; }
+.btn-editar   { background: #512da8; color: #ffffff !important; }
+.btn-eliminar { background: #e53935; color: #ffffff !important; }
+
+/* Ajuste para los iconos de ordenamiento en las cabeceras */
+th svg {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 12px;
+  color: #512da8;
+  vertical-align: middle;
+}
 
 /* ── Paginación ── */
 .tienda-paginacion {
@@ -574,7 +612,9 @@
 /* Tabla */
 .main-content.dark .badge-codigo          { background: #2a1a5e; color: #a78bfa; }
 .main-content.dark .producto-nombre-principal { color: #e2e8f0; }
-.main-content.dark .producto-presentacion { color: #64748b; }
+.main-content.dark .badge-stock           { background: #1e293b; color: #cbd5e1; }
+.main-content.dark .badge-stock--bajo     { background: #713f12; color: #fde047; }
+.main-content.dark .badge-stock--agotado  { background: #7f1d1d; color: #fca5a5; }
 .main-content.dark .producto-precio       { color: #e2e8f0; }
 
 .main-content.dark .badge-iva--0          { background: #14532d; color: #4ade80; }

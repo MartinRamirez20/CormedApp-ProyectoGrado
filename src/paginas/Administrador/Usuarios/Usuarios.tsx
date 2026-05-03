@@ -3,10 +3,16 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase.ts';
 import './Usuarios.css';
 
-//Icons
-import { FaSearch } from "react-icons/fa"; // Busqueda
-import { FaEdit } from "react-icons/fa"; //Editar
-import { FaTrash } from "react-icons/fa"; // Eliminar
+// Icons
+import { 
+  FaEye, 
+  FaEdit, 
+  FaTrash, 
+  FaPlus, 
+  FaSortUp, 
+  FaSortDown, 
+  FaTimes 
+} from "react-icons/fa";
 
 interface RolSimple {
   nombre: string;
@@ -52,16 +58,16 @@ const Usuarios: React.FC = () => {
     correo:                '',
     password:              '',
     telefono:              '',
-  tipo_identificacion:   'CC',
+    tipo_identificacion:   'CC',
     numero_identificacion: '',
     rol_id:                '',
   });
   const [creando, setCreando] = useState(false);
   const [mensajeCrear, setMensajeCrear] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
   const [orden, setOrden] = useState<{ columna: keyof Usuario | 'rol'; direccion: 'asc' | 'desc' }>({
-  columna: 'consecutivo',
-  direccion: 'asc'
-});
+    columna: 'consecutivo',
+    direccion: 'asc'
+  });
 
   useEffect(() => {
     // Si en la navegación enviamos el estado 'abrirModalCrear'
@@ -148,6 +154,14 @@ const Usuarios: React.FC = () => {
     setOrden({ columna, direccion: esAsc ? 'desc' : 'asc' });
   };
 
+  // Función global para renderizar el icono de ordenamiento
+  const renderSortIcon = (col: keyof Usuario | 'rol') => {
+    if (orden.columna !== col) return null;
+    return orden.direccion === 'asc' ? 
+      <FaSortUp style={{ marginLeft: '4px', verticalAlign: 'middle' }} /> : 
+      <FaSortDown style={{ marginLeft: '4px', verticalAlign: 'middle' }} />;
+  };
+
   // ── Paginación ─────────────────────────────────────────────────────────────
   const totalPaginas = Math.ceil(filtrados.length / REGISTROS_POR_PAGINA);
   const inicio       = (pagina - 1) * REGISTROS_POR_PAGINA;
@@ -206,7 +220,7 @@ const Usuarios: React.FC = () => {
     switch (nombre) {
       case 'administrador': return 'badge-rol badge-admin';
       case 'vendedor':      return 'badge-rol badge-vendedor';
-      case 'usuario':       return 'badge-rol badge-usuario';
+      case 'facturacion':   return 'badge-rol badge-usuario'; // Ajustado si cambiaste 'usuario' por 'facturacion'
       default:              return 'badge-rol';
     }
   };
@@ -270,8 +284,8 @@ const Usuarios: React.FC = () => {
         <h2 className="usuarios-title">
           <i className="bi bi-people"></i> Usuarios
         </h2>
-        <button className="btn-nuevo-usuario" onClick={() => setModalCrear(true)}>
-          <i className="bi bi-person-plus">Nuevo Usuario</i>
+        <button className="btn-nuevo-usuario" onClick={() => setModalCrear(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FaPlus /> Nuevo Usuario
         </button>
       </div>
 
@@ -303,16 +317,16 @@ const Usuarios: React.FC = () => {
               <thead>
                 <tr>
                   <th onClick={() => handleSort('consecutivo')} style={{ cursor: 'pointer' }}>
-                    # {orden.columna === 'consecutivo' ? (orden.direccion === 'asc' ? '🔼' : '🔽') : ''}
+                    ID {renderSortIcon('consecutivo')}
                   </th>
                   <th onClick={() => handleSort('nombre_razon_social')} style={{ cursor: 'pointer' }}>
-                    Nombre {orden.columna === 'nombre_razon_social' ? (orden.direccion === 'asc' ? '🔼' : '🔽') : ''}
+                    Nombre {renderSortIcon('nombre_razon_social')}
                   </th>
                   <th>Correo</th>
                   <th>Teléfono</th>
                   <th>Identificación</th>
                   <th onClick={() => handleSort('rol')} style={{ cursor: 'pointer' }}>
-                    Rol {orden.columna === 'rol' ? (orden.direccion === 'asc' ? '🔼' : '🔽') : ''}
+                    Rol {renderSortIcon('rol')}
                   </th>
                   <th>Acciones</th>
                 </tr>
@@ -333,13 +347,13 @@ const Usuarios: React.FC = () => {
                     <td>
                       <div className="usuarios-acciones">
                         <button className="btn-accion btn-ver" title="Ver detalle" onClick={() => setModalDetalle(u)}>
-                          <i className="bi bi-eye"><FaSearch className='icons'/></i>
+                          <FaEye />
                         </button>
                         <button className="btn-accion btn-editar" title="Editar" onClick={() => setModalEditar({ ...u })}>
-                          <i className="bi bi-pencil"><FaEdit className='icons'/></i>
+                          <FaEdit />
                         </button>
                         <button className="btn-accion btn-eliminar" title="Eliminar" onClick={() => setModalEliminar(u)}>
-                          <i className="bi bi-trash"><FaTrash className='icons'/></i>
+                          <FaTrash />
                         </button>
                       </div>
                     </td>
@@ -383,7 +397,7 @@ const Usuarios: React.FC = () => {
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Detalle de Usuario</h3>
-              <button className="modal-cerrar" onClick={() => setModalDetalle(null)}>✕</button>
+              <button className="modal-cerrar" onClick={() => setModalDetalle(null)}><FaTimes /></button>
             </div>
             <div className="modal-body">
               <div className="detalle-fila"><span>Nombre</span><strong>{modalDetalle.nombre_razon_social}</strong></div>
@@ -403,7 +417,7 @@ const Usuarios: React.FC = () => {
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Editar Usuario</h3>
-              <button className="modal-cerrar" onClick={() => setModalEditar(null)}>✕</button>
+              <button className="modal-cerrar" onClick={() => setModalEditar(null)}><FaTimes /></button>
             </div>
             <div className="modal-body">
               {([
@@ -465,7 +479,7 @@ const Usuarios: React.FC = () => {
           <div className="modal-box modal-pequeño" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Eliminar Usuario</h3>
-              <button className="modal-cerrar" onClick={() => setModalEliminar(null)}>✕</button>
+              <button className="modal-cerrar" onClick={() => setModalEliminar(null)}><FaTimes /></button>
             </div>
             <div className="modal-body">
               <p>¿Estás seguro de que deseas eliminar a <strong>{modalEliminar.nombre_razon_social}</strong>?</p>
@@ -486,7 +500,7 @@ const Usuarios: React.FC = () => {
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Nuevo Usuario</h3>
-              <button className="modal-cerrar" onClick={() => setModalCrear(false)}>✕</button>
+              <button className="modal-cerrar" onClick={() => setModalCrear(false)}><FaTimes /></button>
             </div>
             <div className="modal-body">
 

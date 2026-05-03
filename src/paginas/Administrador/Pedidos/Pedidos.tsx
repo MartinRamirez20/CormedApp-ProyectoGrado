@@ -4,7 +4,7 @@ import { supabase } from '../../../supabase.ts';
 import './Pedidos.css';
 
 // Icons
-import { FaSearch, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaEye, FaEdit, FaTrash, FaPlus, FaSortUp, FaSortDown} from 'react-icons/fa';
 
 interface Producto {
   id: number;
@@ -108,8 +108,12 @@ const Pedidos: React.FC = () => {
     setOrden({ columna, direccion: esAsc ? 'desc' : 'asc' });
   };
 
-  const sortIcon = (col: string) =>
-    orden.columna === col ? (orden.direccion === 'asc' ? ' 🔼' : ' 🔽') : '';
+  const sortIcon = (col: string) => {
+    if (orden.columna !== col) return null;
+    return orden.direccion === 'asc' ? 
+      <FaSortUp style={{ marginLeft: '4px', verticalAlign: 'middle' }} /> : 
+      <FaSortDown style={{ marginLeft: '4px', verticalAlign: 'middle' }} />;
+  };
 
   // ── Paginación ─────────────────────────────────────────────────────────────
   const totalPaginas = Math.ceil(filtrados.length / REGISTROS_POR_PAGINA);
@@ -294,7 +298,7 @@ const Pedidos: React.FC = () => {
                             title="Ver detalle"
                             onClick={() => setModalDetalle(p)}
                           >
-                            <FaSearch className="icons" />
+                            <FaEye className="icons" />
                           </button>
                           <button
                             className="btn-accion btn-editar"

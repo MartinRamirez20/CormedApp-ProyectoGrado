@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase.ts';
 import './Clientes.css';
 
+import { FaEdit, FaTrash, FaPlus, FaEye, FaSortUp, FaSortDown } from 'react-icons/fa';
+
 /* ── Tipos ──────────────────────────────────────────────────────────────── */
 interface Cliente {
   id: number;
@@ -176,8 +178,12 @@ const Clientes: React.FC = () => {
     setOrden({ columna, direccion: esAsc ? 'desc' : 'asc' });
   };
 
-  const iconoOrden = (col: ColOrdenable) =>
-    orden.columna === col ? (orden.direccion === 'asc' ? ' 🔼' : ' 🔽') : '';
+  const iconoOrden = (col: ColOrdenable) => {
+    if (orden.columna !== col) return null;
+    return orden.direccion === 'asc' ? 
+      <FaSortUp style={{ marginLeft: '4px', verticalAlign: 'middle' }} /> : 
+      <FaSortDown style={{ marginLeft: '4px', verticalAlign: 'middle' }} />;
+  };
 
   /* ── Paginación ───────────────────────────────────────────────────────── */
   const totalPaginas = Math.ceil(filtrados.length / REGISTROS_POR_PAGINA);
@@ -315,7 +321,7 @@ const Clientes: React.FC = () => {
           Clientes
         </h2>
         <button className="btn-nuevo-cliente" onClick={() => { setFormCrear(FORM_VACIO); setMensajeCrear(null); setModalCrear(true); }}>
-          Nuevo Cliente
+          <FaPlus /> Nuevo Cliente
         </button>
       </div>
 
@@ -420,17 +426,17 @@ const Clientes: React.FC = () => {
                               className="btn-accion btn-ver"
                               title="Ver detalle"
                               onClick={() => setModalDetalle(c)}
-                            >🔍</button>
+                            ><FaEye /></button>
                             <button
                               className="btn-accion btn-editar"
                               title="Editar"
                               onClick={() => handleAbrirEditar(c)}
-                            >📝</button>
+                            ><FaEdit /></button>
                             <button
                               className="btn-accion btn-eliminar"
                               title="Eliminar"
                               onClick={() => setModalEliminar(c)}
-                            >🗑️</button>
+                            ><FaTrash /></button>
                           </div>
                         </td>
                       </tr>

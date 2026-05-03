@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase.ts';
 import './Tienda.css';
 
+import { FaEdit, FaTrash, FaPlus, FaEye, FaSortUp, FaSortDown } from 'react-icons/fa';
+
 /* ── Tipos ──────────────────────────────────────────────────────────────── */
 interface Producto {
   id: number;
@@ -11,6 +13,7 @@ interface Producto {
   presentacion: string | null;
   precio: number;
   iva: 0 | 5 | 19;
+  stock: number;
   activo: boolean;
   fecha_creacion: string;
   fecha_actualizacion: string;
@@ -22,6 +25,7 @@ type ColOrdenable =
   | 'nombre'
   | 'precio'
   | 'iva'
+  | 'stock'
   | 'activo'
   | 'fecha_creacion';
 
@@ -31,6 +35,7 @@ interface FormProducto {
   presentacion: string;
   precio: string;
   iva: string;
+  stock: string;
   activo: boolean;
 }
 
@@ -40,6 +45,7 @@ const FORM_VACIO: FormProducto = {
   presentacion: '',
   precio: '',
   iva: '19',
+  stock: '0',
   activo: true,
 };
 
@@ -110,17 +116,12 @@ const Tienda: React.FC = () => {
     setCargando(false);
   };
 
-  //Link Dashboard
   useEffect(() => {
-    // Si en la navegación enviamos el estado 'abrirModalCrear'
     if (location.state && location.state.abrirModalCrear) {
-      setModalCrear(true); // Activamos el modal
-      
-      // Limpiamos el estado de la navegación para que no se abra 
-      // infinitamente si el usuario refresca la página (F5)
+      setModalCrear(true);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location, navigate]); // Solo depende de estos dos hooks
+  }, [location, navigate]);
 
   useEffect(() => {
     cargarProductos();
@@ -156,8 +157,12 @@ const Tienda: React.FC = () => {
     setOrden({ columna, direccion: esAsc ? 'desc' : 'asc' });
   };
 
-  const iconoOrden = (col: ColOrdenable) =>
-    orden.columna === col ? (orden.direccion === 'asc' ? ' 🔼' : ' 🔽') : '';
+  const iconoOrden = (col: ColOrdenable) => {
+    if (orden.columna !== col) return null;
+    return orden.direccion === 'asc' ? 
+      <FaSortUp style={{ marginLeft: '4px', verticalAlign: 'middle' }} /> : 
+      <FaSortDown style={{ marginLeft: '4px', verticalAlign: 'middle' }} />;
+  };
 
   /* ── Paginación ───────────────────────────────────────────────────────── */
   const totalPaginas = Math.ceil(filtrados.length / REGISTROS_POR_PAGINA);
@@ -174,6 +179,7 @@ const Tienda: React.FC = () => {
       presentacion: p.presentacion ?? '',
       precio:       String(p.precio),
       iva:          String(p.iva),
+      stock:        String(p.stock),
       activo:       p.activo,
     });
   };
@@ -182,15 +188,22 @@ const Tienda: React.FC = () => {
   const handleGuardarEdicion = async () => {
     if (!modalEditar) return;
 
-    const { codigo, nombre, precio } = formEditar;
-    if (!codigo || !nombre || !precio) {
-      setMensajeEditar({ tipo: 'error', texto: 'Código, nombre y precio son obligatorios.' });
+    const { codigo, nombre, precio, stock } = formEditar;
+    if (!codigo || !nombre || !precio || stock === '') {
+      setMensajeEditar({ tipo: 'error', texto: 'Código, nombre, precio y stock son obligatorios.' });
       return;
     }
 
     const precioNum = parseFloat(precio);
+    const stockNum = parseInt(stock, 10);
+    
     if (isNaN(precioNum) || precioNum < 0) {
       setMensajeEditar({ tipo: 'error', texto: 'El precio debe ser un número válido mayor o igual a 0.' });
+      return;
+    }
+
+    if (isNaN(stockNum) || stockNum < 0) {
+      setMensajeEditar({ tipo: 'error', texto: 'El stock debe ser un número entero mayor o igual a 0.' });
       return;
     }
 
@@ -205,6 +218,7 @@ const Tienda: React.FC = () => {
         presentacion:        formEditar.presentacion || null,
         precio:              precioNum,
         iva:                 parseInt(formEditar.iva),
+        stock:               stockNum,
         activo:              formEditar.activo,
         fecha_actualizacion: new Date().toISOString(),
       })
@@ -239,16 +253,23 @@ const Tienda: React.FC = () => {
 
   /* ── Crear producto ───────────────────────────────────────────────────── */
   const handleCrearProducto = async () => {
-    const { codigo, nombre, precio } = formCrear;
+    const { codigo, nombre, precio, stock } = formCrear;
 
-    if (!codigo || !nombre || !precio) {
-      setMensajeCrear({ tipo: 'error', texto: 'Código, nombre y precio son obligatorios.' });
+    if (!codigo || !nombre || !precio || stock === '') {
+      setMensajeCrear({ tipo: 'error', texto: 'Código, nombre, precio y stock son obligatorios.' });
       return;
     }
 
     const precioNum = parseFloat(precio);
+    const stockNum = parseInt(stock, 10);
+
     if (isNaN(precioNum) || precioNum < 0) {
       setMensajeCrear({ tipo: 'error', texto: 'El precio debe ser un número válido mayor o igual a 0.' });
+      return;
+    }
+
+    if (isNaN(stockNum) || stockNum < 0) {
+      setMensajeCrear({ tipo: 'error', texto: 'El stock debe ser un número entero mayor o igual a 0.' });
       return;
     }
 
@@ -261,6 +282,7 @@ const Tienda: React.FC = () => {
       presentacion: formCrear.presentacion || null,
       precio:       precioNum,
       iva:          parseInt(formCrear.iva),
+      stock:        stockNum,
       activo:       formCrear.activo,
     });
 
@@ -286,18 +308,16 @@ const Tienda: React.FC = () => {
   return (
     <div className="tienda-page">
 
-      {/* Encabezado */}
       <div className="tienda-header">
         <h2 className="tienda-title">Tienda</h2>
         <button
           className="btn-nuevo-producto"
           onClick={() => { setFormCrear(FORM_VACIO); setMensajeCrear(null); setModalCrear(true); }}
         >
-          Nuevo Producto
+          <FaPlus /> Nuevo Producto
         </button>
       </div>
 
-      {/* Tarjetas de resumen */}
       <div className="tienda-stats">
         <div className="stat-card">
           <span className="stat-label">Total productos</span>
@@ -313,7 +333,6 @@ const Tienda: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla principal */}
       <div className="dash-card">
         <div className="tienda-toolbar">
           <div className="tienda-toolbar-left">
@@ -321,7 +340,6 @@ const Tienda: React.FC = () => {
             <span className="toolbar-count">{filtrados.length}</span>
             <span className="toolbar-label">registros</span>
 
-            {/* Filtro por estado */}
             <div className="tienda-filtros">
               {(['todos', 'activo', 'inactivo'] as const).map(f => (
                 <button
@@ -339,7 +357,7 @@ const Tienda: React.FC = () => {
             <input
               className="tienda-buscador"
               type="text"
-              placeholder="Nombre, código, presentación..."
+              placeholder="Nombre, código o presentación..."
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
             />
@@ -363,7 +381,9 @@ const Tienda: React.FC = () => {
                     <th onClick={() => handleSort('nombre')} style={{ cursor: 'pointer' }}>
                       Nombre{iconoOrden('nombre')}
                     </th>
-                    <th>Presentación</th>
+                    <th onClick={() => handleSort('stock')} style={{ cursor: 'pointer' }}>
+                      Stock{iconoOrden('stock')}
+                    </th>
                     <th onClick={() => handleSort('precio')} style={{ cursor: 'pointer' }}>
                       Precio{iconoOrden('precio')}
                     </th>
@@ -388,12 +408,9 @@ const Tienda: React.FC = () => {
                     paginados.map(p => (
                       <tr key={p.id}>
                         <td>#{p.id}</td>
-
-                        {/* Código */}
                         <td>
                           <span className="badge-codigo">{p.codigo}</span>
                         </td>
-
                         {/* Nombre + presentación */}
                         <td>
                           <div className="producto-nombre-stack">
@@ -403,48 +420,46 @@ const Tienda: React.FC = () => {
                             )}
                           </div>
                         </td>
-
-                        {/* Presentación (columna separada) */}
-                        <td>{p.presentacion || <span style={{ color: '#bbb' }}>—</span>}</td>
-
-                        {/* Precio */}
+                        <td>
+                          <span className={`badge-stock ${p.stock <= 5 ? (p.stock === 0 ? 'badge-stock--agotado' : 'badge-stock--bajo') : ''}`}>
+                            {p.stock === 0 ? 'Agotado' : p.stock}
+                          </span>
+                        </td>
                         <td>
                           <span className="producto-precio">{formatPrecio(p.precio)}</span>
                         </td>
-
-                        {/* IVA */}
                         <td>
                           <span className={`badge-iva badge-iva--${p.iva}`}>{p.iva}%</span>
                         </td>
-
-                        {/* Estado */}
                         <td>
                           <span className={`badge-estado ${p.activo ? 'badge-estado--activo' : 'badge-estado--inactivo'}`}>
                             {p.activo ? 'Activo' : 'Inactivo'}
                           </span>
                         </td>
-
-                        {/* Fecha */}
                         <td>{formatFecha(p.fecha_creacion)}</td>
-
-                        {/* Acciones */}
                         <td>
                           <div className="tienda-acciones">
                             <button
                               className="btn-accion btn-ver"
                               title="Ver detalle"
                               onClick={() => setModalDetalle(p)}
-                            >🔍</button>
+                            >
+                              <FaEye />
+                            </button>
                             <button
                               className="btn-accion btn-editar"
                               title="Editar"
                               onClick={() => handleAbrirEditar(p)}
-                            >📝</button>
+                            >
+                              <FaEdit />
+                            </button>
                             <button
                               className="btn-accion btn-eliminar"
                               title="Eliminar"
                               onClick={() => setModalEliminar(p)}
-                            >🗑️</button>
+                            >
+                              <FaTrash />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -454,7 +469,6 @@ const Tienda: React.FC = () => {
               </table>
             </div>
 
-            {/* Paginación */}
             <div className="tienda-paginacion">
               <span className="paginacion-info">
                 Mostrando {filtrados.length === 0 ? 0 : inicio + 1} al{' '}
@@ -490,7 +504,6 @@ const Tienda: React.FC = () => {
               <button className="modal-cerrar" onClick={() => setModalDetalle(null)}>✕</button>
             </div>
             <div className="modal-body">
-
               <p className="detalle-seccion-titulo">Identificación</p>
               <div className="detalle-fila">
                 <span>Código</span>
@@ -502,7 +515,7 @@ const Tienda: React.FC = () => {
                 <strong>{modalDetalle.presentacion || '—'}</strong>
               </div>
 
-              <p className="detalle-seccion-titulo">Precios</p>
+              <p className="detalle-seccion-titulo">Precios e Inventario</p>
               <div className="detalle-fila">
                 <span>Precio base</span>
                 <strong>{formatPrecio(modalDetalle.precio)}</strong>
@@ -516,6 +529,14 @@ const Tienda: React.FC = () => {
               <div className="detalle-fila">
                 <span>Precio con IVA</span>
                 <strong>{formatPrecio(modalDetalle.precio * (1 + modalDetalle.iva / 100))}</strong>
+              </div>
+              <div className="detalle-fila">
+                <span>Stock Actual</span>
+                <strong>
+                  <span className={`badge-stock ${modalDetalle.stock <= 5 ? (modalDetalle.stock === 0 ? 'badge-stock--agotado' : 'badge-stock--bajo') : ''}`}>
+                    {modalDetalle.stock} Unidades
+                  </span>
+                </strong>
               </div>
 
               <p className="detalle-seccion-titulo">Estado</p>
@@ -576,7 +597,7 @@ const Tienda: React.FC = () => {
                 />
               </div>
 
-              <p className="detalle-seccion-titulo">Precios</p>
+              <p className="detalle-seccion-titulo">Precios e Inventario</p>
               <div className="form-fila">
                 <div className="perfil-campo">
                   <label>Precio *</label>
@@ -587,6 +608,17 @@ const Tienda: React.FC = () => {
                     value={formEditar.precio}
                     placeholder="0"
                     onChange={e => setFormEditar(p => ({ ...p, precio: e.target.value }))}
+                  />
+                </div>
+                <div className="perfil-campo">
+                  <label>Stock *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={formEditar.stock}
+                    placeholder="0"
+                    onChange={e => setFormEditar(p => ({ ...p, stock: e.target.value }))}
                   />
                 </div>
                 <div className="perfil-campo">
@@ -688,7 +720,7 @@ const Tienda: React.FC = () => {
                 />
               </div>
 
-              <p className="detalle-seccion-titulo">Precios</p>
+              <p className="detalle-seccion-titulo">Precios e Inventario</p>
               <div className="form-fila">
                 <div className="perfil-campo">
                   <label>Precio *</label>
@@ -699,6 +731,17 @@ const Tienda: React.FC = () => {
                     placeholder="0"
                     value={formCrear.precio}
                     onChange={e => setFormCrear(p => ({ ...p, precio: e.target.value }))}
+                  />
+                </div>
+                <div className="perfil-campo">
+                  <label>Stock Inicial *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="0"
+                    value={formCrear.stock}
+                    onChange={e => setFormCrear(p => ({ ...p, stock: e.target.value }))}
                   />
                 </div>
                 <div className="perfil-campo">

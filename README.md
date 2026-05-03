@@ -269,3 +269,14 @@ Arreglar estilos en la creacion de pedidos en la seccion cantidad.
 Agregar funcion para ver el stock de los productos a la hora
 
 SE DEBE AGREGAR 'STOCK' A LA TABLA DE PRODUCTOS!!! IMPORTANTISIMO
+
+
+### Inicio correccion errores (2/05/2026)
+
+Se agrega la columna 'stock' a la tabla de productos
+
+Se arregla Tienda, permitiendo agregar stock y modificarlo
+
+Arreglo estilos: Se dejan iconos iguales en todas las secciones de la tienda.
+
+Tambien se unifican funciones.
