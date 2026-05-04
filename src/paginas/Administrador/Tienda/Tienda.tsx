@@ -51,7 +51,7 @@ const FORM_VACIO: FormProducto = {
 
 const REGISTROS_POR_PAGINA = 10;
 
-/* ── Helpers ─────────────────────────────────────────────────────────────── */
+/* ── Helpers de Validación y Formateo ───────────────────────────────────── */
 const formatFecha = (iso: string) =>
   new Date(iso).toLocaleDateString('es-CO', {
     day: '2-digit',
@@ -63,9 +63,25 @@ const formatPrecio = (valor: number) =>
   new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2, // No muestra decimales si es un número entero (ej: $5.000)
+    maximumFractionDigits: 2, // Pero si tiene decimales, muestra hasta 2 (ej: $5.99)
   }).format(valor);
+
+// Función centralizada para validar productos
+const validarProducto = (form: FormProducto): string | null => {
+  if (!form.codigo.trim()) return 'El código (SKU) es obligatorio.';
+  if (!form.nombre.trim()) return 'El nombre del producto es obligatorio.';
+
+  if (!form.precio.trim()) return 'El precio es obligatorio.';
+  // Permite números con o sin decimales (separados por un punto)
+  if (!/^\d+(\.\d+)?$/.test(form.precio)) return 'El precio debe ser un número válido mayor o igual a 0.';
+
+  if (!form.stock.trim()) return 'El stock es obligatorio.';
+  // Exclusivamente números enteros (sin puntos, sin comas, sin letras)
+  if (!/^\d+$/.test(form.stock)) return 'El stock debe ser un número entero mayor o igual a 0 (sin decimales).';
+
+  return null;
+};
 
 /* ── Componente ─────────────────────────────────────────────────────────── */
 const Tienda: React.FC = () => {
@@ -188,24 +204,14 @@ const Tienda: React.FC = () => {
   const handleGuardarEdicion = async () => {
     if (!modalEditar) return;
 
-    const { codigo, nombre, precio, stock } = formEditar;
-    if (!codigo || !nombre || !precio || stock === '') {
-      setMensajeEditar({ tipo: 'error', texto: 'Código, nombre, precio y stock son obligatorios.' });
+    const errorValidacion = validarProducto(formEditar);
+    if (errorValidacion) {
+      setMensajeEditar({ tipo: 'error', texto: errorValidacion });
       return;
     }
 
-    const precioNum = parseFloat(precio);
-    const stockNum = parseInt(stock, 10);
-    
-    if (isNaN(precioNum) || precioNum < 0) {
-      setMensajeEditar({ tipo: 'error', texto: 'El precio debe ser un número válido mayor o igual a 0.' });
-      return;
-    }
-
-    if (isNaN(stockNum) || stockNum < 0) {
-      setMensajeEditar({ tipo: 'error', texto: 'El stock debe ser un número entero mayor o igual a 0.' });
-      return;
-    }
+    const precioNum = parseFloat(formEditar.precio);
+    const stockNum = parseInt(formEditar.stock, 10);
 
     setGuardando(true);
     setMensajeEditar(null);
@@ -253,25 +259,14 @@ const Tienda: React.FC = () => {
 
   /* ── Crear producto ───────────────────────────────────────────────────── */
   const handleCrearProducto = async () => {
-    const { codigo, nombre, precio, stock } = formCrear;
-
-    if (!codigo || !nombre || !precio || stock === '') {
-      setMensajeCrear({ tipo: 'error', texto: 'Código, nombre, precio y stock son obligatorios.' });
+    const errorValidacion = validarProducto(formCrear);
+    if (errorValidacion) {
+      setMensajeCrear({ tipo: 'error', texto: errorValidacion });
       return;
     }
 
-    const precioNum = parseFloat(precio);
-    const stockNum = parseInt(stock, 10);
-
-    if (isNaN(precioNum) || precioNum < 0) {
-      setMensajeCrear({ tipo: 'error', texto: 'El precio debe ser un número válido mayor o igual a 0.' });
-      return;
-    }
-
-    if (isNaN(stockNum) || stockNum < 0) {
-      setMensajeCrear({ tipo: 'error', texto: 'El stock debe ser un número entero mayor o igual a 0.' });
-      return;
-    }
+    const precioNum = parseFloat(formCrear.precio);
+    const stockNum = parseInt(formCrear.stock, 10);
 
     setCreando(true);
     setMensajeCrear(null);
@@ -534,7 +529,7 @@ const Tienda: React.FC = () => {
                 <span>Stock Actual</span>
                 <strong>
                   <span className={`badge-stock ${modalDetalle.stock <= 5 ? (modalDetalle.stock === 0 ? 'badge-stock--agotado' : 'badge-stock--bajo') : ''}`}>
-                    {modalDetalle.stock} Unidades
+                    {modalDetalle.stock === 0 ? 'Agotado' : `${modalDetalle.stock} Unidades`}
                   </span>
                 </strong>
               </div>
@@ -602,23 +597,30 @@ const Tienda: React.FC = () => {
                 <div className="perfil-campo">
                   <label>Precio *</label>
                   <input
-                    type="number"
-                    min="0"
-                    step="0.01"
+                    type="text"
+                    placeholder="0.00"
                     value={formEditar.precio}
-                    placeholder="0"
-                    onChange={e => setFormEditar(p => ({ ...p, precio: e.target.value }))}
+                    onChange={e => {
+                      const val = e.target.value;
+                      // Permitir solo números y punto. Si hay más de un punto, lo ignora.
+                      const filtrado = val.replace(/[^0-9.]/g, '');
+                      const partes = filtrado.split('.');
+                      const final = partes.length > 2 ? partes[0] + '.' + partes.slice(1).join('') : filtrado;
+                      setFormEditar(p => ({ ...p, precio: final }));
+                    }}
                   />
                 </div>
                 <div className="perfil-campo">
                   <label>Stock *</label>
                   <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={formEditar.stock}
+                    type="text"
                     placeholder="0"
-                    onChange={e => setFormEditar(p => ({ ...p, stock: e.target.value }))}
+                    value={formEditar.stock}
+                    onChange={e => {
+                      // Permitir solo números (elimina puntos y letras)
+                      const final = e.target.value.replace(/\D/g, '');
+                      setFormEditar(p => ({ ...p, stock: final }));
+                    }}
                   />
                 </div>
                 <div className="perfil-campo">
@@ -725,23 +727,30 @@ const Tienda: React.FC = () => {
                 <div className="perfil-campo">
                   <label>Precio *</label>
                   <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0"
+                    type="text"
+                    placeholder="0.00"
                     value={formCrear.precio}
-                    onChange={e => setFormCrear(p => ({ ...p, precio: e.target.value }))}
+                    onChange={e => {
+                      const val = e.target.value;
+                      // Permitir solo números y punto.
+                      const filtrado = val.replace(/[^0-9.]/g, '');
+                      const partes = filtrado.split('.');
+                      const final = partes.length > 2 ? partes[0] + '.' + partes.slice(1).join('') : filtrado;
+                      setFormCrear(p => ({ ...p, precio: final }));
+                    }}
                   />
                 </div>
                 <div className="perfil-campo">
                   <label>Stock Inicial *</label>
                   <input
-                    type="number"
-                    min="0"
-                    step="1"
+                    type="text"
                     placeholder="0"
                     value={formCrear.stock}
-                    onChange={e => setFormCrear(p => ({ ...p, stock: e.target.value }))}
+                    onChange={e => {
+                      // Permitir solo números enteros
+                      const final = e.target.value.replace(/\D/g, '');
+                      setFormCrear(p => ({ ...p, stock: final }));
+                    }}
                   />
                 </div>
                 <div className="perfil-campo">

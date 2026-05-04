@@ -137,6 +137,44 @@
   flex-shrink: 0;
 }
 
+/* --- Estilos para el campo de contraseña con icono --- */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  /* Agregamos un poco de padding a la derecha para que el texto no se monte encima del icono */
+  padding-right: 40px !important; 
+}
+
+.btn-ver-password {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #666; /* Color gris suave para el icono */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+.btn-ver-password:hover {
+  color: #333; /* Color más oscuro al pasar el ratón */
+}
+
+/* Evita que el botón afecte o envíe el formulario accidentalmente */
+.btn-ver-password:focus {
+  outline: none;
+}
+
 /* ── Modo oscuro Perfil ── */
 .main-content.dark .perfil-title {
   color: #e2e8f0;

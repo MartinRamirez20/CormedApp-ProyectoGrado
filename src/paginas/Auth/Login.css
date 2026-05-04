@@ -1,10 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
-/* Se planean usar los estilos con SCSS 
-   para mejor organización y mantenimiento del código.
-   Arreglar eso en un futuro.
-*/
-
 .auth-container {
   display: flex;
   align-items: center;
@@ -287,4 +282,48 @@
 
 .login-container.active .toggle-right {
   transform: translateX(200%);
+}
+
+/* --- Estilos para el campo de contraseña con icono --- */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin: 8px 0; /* Movemos el margen del input hacia el contenedor */
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  margin: 0; /* Quitamos el margen interno para que el icono se centre bien */
+  padding-right: 40px !important; 
+}
+
+/* Aumentamos la especificidad agregando '.login-container' al principio 
+   para que sobreescriba el diseño morado de los botones por defecto */
+.login-container button.btn-ver-password {
+  position: absolute;
+  right: 15px; /* Separación del borde derecho */
+  background-color: transparent;
+  border: none;
+  color: #666; /* Color gris suave para el icono */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0; /* Anulamos el margin-top de los otros botones */
+  font-size: 16px;
+  min-width: auto; /* Evita que tome el ancho de otros botones */
+}
+
+/* Anulamos el efecto hover morado de los otros botones */
+.login-container button.btn-ver-password:hover:not(:disabled) {
+  background-color: transparent; 
+  color: #333; /* Solo oscurece el icono */
+}
+
+/* Evita que el botón se resalte al darle clic */
+.login-container button.btn-ver-password:focus {
+  outline: none;
 }

@@ -34,6 +34,56 @@ interface UsuarioDetalle extends Usuario {}
 
 const REGISTROS_POR_PAGINA = 10;
 
+/* ── Helpers de Validación y Formateo ───────────────────────────────────── */
+
+// Función centralizada para mostrar errores específicos de Usuario
+const validarUsuario = (user: any): string | null => {
+  if (!user.nombre_razon_social?.trim()) return 'El nombre es obligatorio.';
+  
+  if (!user.correo?.trim()) return 'El correo electrónico es obligatorio.';
+  const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!correoRegex.test(user.correo)) return 'El correo debe tener un formato válido (incluir "@" y ".").';
+
+  // Validación de contraseña (solo si existe en el objeto, como en el caso de creación)
+  if (user.hasOwnProperty('password') && (!user.password || user.password.length < 6)) {
+    return 'La contraseña debe tener al menos 6 caracteres.';
+  }
+
+  const idLimpia = user.numero_identificacion?.trim() || '';
+  const soloNumerosId = idLimpia.replace(/-/g, '');
+  if (!idLimpia) return 'El número de identificación es obligatorio.';
+  if (soloNumerosId.length < 3 || soloNumerosId.length > 10) return 'La identificación debe tener entre 3 y 10 números.';
+  if (!/\d/.test(idLimpia)) return 'La identificación debe contener al menos un número.';
+
+  if (user.telefono) {
+    if (!/^\d{1,10}$/.test(user.telefono)) return 'El teléfono debe contener solo números (máximo 10).';
+  }
+
+  if (!user.rol_id && !user.roles) return 'Debe asignar un rol al usuario.';
+
+  return null;
+};
+
+// Función para limpiar la identificación (solo números y un guion)
+const limpiarId = (val: string): string => {
+  const filtrado = val.replace(/[^\d-]/g, '');
+  const partes = filtrado.split('-');
+  let final = partes.length > 2 ? partes[0] + '-' + partes.slice(1).join('') : filtrado;
+  
+  const soloNumeros = final.replace(/-/g, '');
+  if (soloNumeros.length > 10) {
+    const indiceGuion = final.indexOf('-');
+    const limpia = soloNumeros.slice(0, 10);
+    if (indiceGuion !== -1) {
+      final = limpia.slice(0, indiceGuion) + '-' + limpia.slice(indiceGuion);
+    } else {
+      final = limpia;
+    }
+  }
+  return final;
+};
+
+/* ── Componente ─────────────────────────────────────────────────────────── */
 const Usuarios: React.FC = () => {
   const [usuarios, setUsuarios]           = useState<Usuario[]>([]);
   const [filtrados, setFiltrados]         = useState<Usuario[]>([]);
@@ -70,18 +120,13 @@ const Usuarios: React.FC = () => {
   });
 
   useEffect(() => {
-    // Si en la navegación enviamos el estado 'abrirModalCrear'
     if (location.state && location.state.abrirModalCrear) {
-      setModalCrear(true); // Activamos el modal
-      
-      // Limpiamos el estado de la navegación para que no se abra 
-      // infinitamente si el usuario refresca la página (F5)
+      setModalCrear(true);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location, navigate]); // Solo depende de estos dos hooks
+  }, [location, navigate]);
 
   
-  // ── Cargar usuarios ────────────────────────────────────────────────────────
   const cargarUsuarios = async () => {
     setCargando(true);
     const { data, error } = await supabase
@@ -94,12 +139,9 @@ const Usuarios: React.FC = () => {
       .order('consecutivo', { ascending: true });
 
     if (!error && data) {
-      // Normalizar: Supabase puede devolver roles como objeto o array
       const mapped: Usuario[] = (data as any[]).map(u => ({
         ...u,
-        roles: Array.isArray(u.roles)
-          ? (u.roles[0] ?? null)
-          : (u.roles ?? null),
+        roles: Array.isArray(u.roles) ? (u.roles[0] ?? null) : (u.roles ?? null),
       }));
       setUsuarios(mapped);
       setFiltrados(mapped);
@@ -107,7 +149,6 @@ const Usuarios: React.FC = () => {
     setCargando(false);
   };
 
-  // ── Cargar roles ───────────────────────────────────────────────────────────
   const cargarRoles = async () => {
     const { data } = await supabase.from('roles').select('id, nombre').order('id');
     if (data) setRoles(data);
@@ -118,7 +159,6 @@ const Usuarios: React.FC = () => {
     cargarRoles();
   }, []);
 
-  // ── Buscador ───────────────────────────────────────────────────────────────
   useEffect(() => {
     const q = busqueda.toLowerCase();
     setFiltrados(
@@ -132,29 +172,23 @@ const Usuarios: React.FC = () => {
     setPagina(1);
   }, [busqueda, usuarios]);
 
-  // Modifica la lógica de filtrados para incluir el ordenamiento
   const usuariosOrdenados = [...filtrados].sort((a, b) => {
     let valA: any = a[orden.columna as keyof Usuario];
     let valB: any = b[orden.columna as keyof Usuario];
-
-    // Caso especial para la columna Rol (que es un objeto anidado)
     if (orden.columna === 'rol') {
       valA = a.roles?.nombre ?? '';
       valB = b.roles?.nombre ?? '';
     }
-
     if (valA < valB) return orden.direccion === 'asc' ? -1 : 1;
     if (valA > valB) return orden.direccion === 'asc' ? 1 : -1;
     return 0;
   });
 
-  // Función para cambiar el orden
   const handleSort = (columna: keyof Usuario | 'rol') => {
     const esAsc = orden.columna === columna && orden.direccion === 'asc';
     setOrden({ columna, direccion: esAsc ? 'desc' : 'asc' });
   };
 
-  // Función global para renderizar el icono de ordenamiento
   const renderSortIcon = (col: keyof Usuario | 'rol') => {
     if (orden.columna !== col) return null;
     return orden.direccion === 'asc' ? 
@@ -162,15 +196,20 @@ const Usuarios: React.FC = () => {
       <FaSortDown style={{ marginLeft: '4px', verticalAlign: 'middle' }} />;
   };
 
-  // ── Paginación ─────────────────────────────────────────────────────────────
   const totalPaginas = Math.ceil(filtrados.length / REGISTROS_POR_PAGINA);
   const inicio       = (pagina - 1) * REGISTROS_POR_PAGINA;
-  // Actualiza la paginación para que use 'usuariosOrdenados' en lugar de 'filtrados'
   const paginados = usuariosOrdenados.slice(inicio, inicio + REGISTROS_POR_PAGINA);
 
-  // ── Editar usuario ─────────────────────────────────────────────────────────
   const handleGuardarEdicion = async () => {
     if (!modalEditar) return;
+    
+    // Nueva validación
+    const errorValidacion = validarUsuario(modalEditar);
+    if (errorValidacion) {
+      setMensaje({ tipo: 'error', texto: errorValidacion });
+      return;
+    }
+
     setGuardando(true);
     setMensaje(null);
 
@@ -199,16 +238,10 @@ const Usuarios: React.FC = () => {
     setGuardando(false);
   };
 
-  // ── Eliminar usuario ───────────────────────────────────────────────────────
   const handleEliminar = async () => {
     if (!modalEliminar) return;
     setGuardando(true);
-
-    const { error } = await supabase
-      .from('usuarios')
-      .delete()
-      .eq('id', modalEliminar.id);
-
+    const { error } = await supabase.from('usuarios').delete().eq('id', modalEliminar.id);
     if (!error) {
       await cargarUsuarios();
       setModalEliminar(null);
@@ -220,26 +253,21 @@ const Usuarios: React.FC = () => {
     switch (nombre) {
       case 'administrador': return 'badge-rol badge-admin';
       case 'vendedor':      return 'badge-rol badge-vendedor';
-      case 'facturacion':   return 'badge-rol badge-usuario'; // Ajustado si cambiaste 'usuario' por 'facturacion'
+      case 'facturacion':   return 'badge-rol badge-usuario';
       default:              return 'badge-rol';
     }
   };
 
   const handleCrearUsuario = async () => {
-    const { nombre_razon_social, correo, password, numero_identificacion, rol_id } = nuevoUsuario;
-
-    if (!nombre_razon_social || !correo || !password || !numero_identificacion || !rol_id) {
-      setMensajeCrear({ tipo: 'error', texto: 'Todos los campos obligatorios deben completarse.' });
-      return;
-    }
-    if (password.length < 6) {
-      setMensajeCrear({ tipo: 'error', texto: 'La contraseña debe tener al menos 6 caracteres.' });
+    // Nueva validación
+    const errorValidacion = validarUsuario(nuevoUsuario);
+    if (errorValidacion) {
+      setMensajeCrear({ tipo: 'error', texto: errorValidacion });
       return;
     }
 
     setCreando(true);
     setMensajeCrear(null);
-
     const { data: { session } } = await supabase.auth.getSession();
 
     const res = await fetch(
@@ -249,7 +277,7 @@ const Usuarios: React.FC = () => {
         headers: {
           'Content-Type':  'application/json',
           'Authorization': `Bearer ${session?.access_token}`,
-          'apikey':        import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'apikey':         import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
           ...nuevoUsuario,
@@ -420,20 +448,30 @@ const Usuarios: React.FC = () => {
               <button className="modal-cerrar" onClick={() => setModalEditar(null)}><FaTimes /></button>
             </div>
             <div className="modal-body">
-              {([
-                { label: 'Nombre', key: 'nombre_razon_social' },
-                { label: 'Correo', key: 'correo' },
-                { label: 'Teléfono', key: 'telefono' },
-                { label: 'Número de identificación', key: 'numero_identificacion' },
-              ] as { label: string; key: keyof Usuario }[]).map(({ label, key }) => (
-                <div className="perfil-campo" key={key}>
-                  <label>{label}</label>
-                  <input
-                    value={String(modalEditar[key] ?? '')}
-                    onChange={e => setModalEditar(prev => prev ? { ...prev, [key]: e.target.value } : prev)}
-                  />
-                </div>
-              ))}
+              <div className="perfil-campo">
+                <label>Nombre *</label>
+                <input
+                  value={modalEditar.nombre_razon_social}
+                  onChange={e => setModalEditar(prev => prev ? { ...prev, nombre_razon_social: e.target.value } : prev)}
+                />
+              </div>
+
+              <div className="perfil-campo">
+                <label>Correo *</label>
+                <input
+                  value={modalEditar.correo}
+                  onChange={e => setModalEditar(prev => prev ? { ...prev, correo: e.target.value } : prev)}
+                />
+              </div>
+
+              <div className="perfil-campo">
+                <label>Teléfono</label>
+                <input
+                  placeholder="3001234567"
+                  value={modalEditar.telefono}
+                  onChange={e => setModalEditar(prev => prev ? { ...prev, telefono: e.target.value.replace(/\D/g, '').slice(0, 10) } : prev)}
+                />
+              </div>
 
               <div className="perfil-campo">
                 <label>Tipo de Identificación</label>
@@ -443,6 +481,17 @@ const Usuarios: React.FC = () => {
                 >
                   {['CC', 'NIT', 'PASAPORTE', 'CE'].map(t => <option key={t}>{t}</option>)}
                 </select>
+              </div>
+
+              <div className="perfil-campo">
+                <label>Número de identificación *</label>
+                <input
+                  value={modalEditar.numero_identificacion}
+                  onChange={e => {
+                    const final = limpiarId(e.target.value);
+                    setModalEditar(prev => prev ? { ...prev, numero_identificacion: final } : prev);
+                  }}
+                />
               </div>
 
               <div className="perfil-campo">
@@ -538,7 +587,7 @@ const Usuarios: React.FC = () => {
                 <input
                   placeholder="3001234567"
                   value={nuevoUsuario.telefono}
-                  onChange={e => setNuevoUsuario(p => ({ ...p, telefono: e.target.value }))}
+                  onChange={e => setNuevoUsuario(p => ({ ...p, telefono: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
                 />
               </div>
 
@@ -557,7 +606,10 @@ const Usuarios: React.FC = () => {
                   <input
                     placeholder="123456789"
                     value={nuevoUsuario.numero_identificacion}
-                    onChange={e => setNuevoUsuario(p => ({ ...p, numero_identificacion: e.target.value }))}
+                    onChange={e => {
+                      const final = limpiarId(e.target.value);
+                      setNuevoUsuario(p => ({ ...p, numero_identificacion: final }));
+                    }}
                   />
                 </div>
               </div>
@@ -593,7 +645,6 @@ const Usuarios: React.FC = () => {
         </div>
       )}
     </div>
-    
   );
 };
 

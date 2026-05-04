@@ -280,3 +280,18 @@ Se arregla Tienda, permitiendo agregar stock y modificarlo
 Arreglo estilos: Se dejan iconos iguales en todas las secciones de la tienda.
 
 Tambien se unifican funciones.
+
+
+### Correciones de formularios en todas las secciones y agregar un ver contraseña (3/05/2026)
+
+Se agregan expresiones regulares para Clientes (Terminado)
+
+Lo mismo para Tienda (Terminado)
+
+Lo mismo para Usuarios (Terminado)
+
+Se agrega ver contraseña para Login y Perfil
+
+### Correciones en 'Crearpedido.tsx' y 'Pedidos.tsx' (4/05/2026)
+
+

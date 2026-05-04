@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import './Login.css';
 
 interface LoginProps {
@@ -15,6 +16,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword, onForgotEmail
   const [recoveryEmail, setRecoveryEmail] = useState('');
   // NUEVO: estado para saber si el enlace ya fue enviado exitosamente
   const [recoverySuccess, setRecoverySuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,14 +132,24 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword, onForgotEmail
               disabled={loading}
             />
             <span>Ingrese su contraseña</span>
-            <input
-              type="password"
-              placeholder="Password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
+            <div className="password-input-wrapper">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                required
+                disabled={loading}
+              />
+              <button
+                type="button"
+                className="btn-ver-password"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
             <button type="submit" disabled={loading}>
               {loading ? 'Entrando...' : 'Entrar'}
             </button>

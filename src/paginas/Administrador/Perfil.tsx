@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabase.ts';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import './Perfil.css';
 
 type TipoId = 'CC' | 'NIT' | 'PASAPORTE' | 'CE';
@@ -29,6 +30,8 @@ const Perfil: React.FC = () => {
   const [cargando, setCargando] = useState(true);
   const [mensajeDatos, setMensajeDatos] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
   const [mensajePassword, setMensajePassword] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+  const [showNuevaPassword, setShowNuevaPassword] = useState(false);
+  const [showConfirmarPassword, setShowConfirmarPassword] = useState(false);
 
   // ── Cargar datos del usuario ──────────────────────────────────────────────
   useEffect(() => {
@@ -221,22 +224,42 @@ const Perfil: React.FC = () => {
 
           <div className="perfil-campo">
             <label>Nueva Contraseña</label>
-            <input
-              type="password"
-              value={nuevaPassword}
-              onChange={e => setNuevaPassword(e.target.value)}
-              placeholder="Mínimo 6 caracteres"
-            />
+            {/* NUEVO: Contenedor relativo con el icono */}
+            <div className="password-input-wrapper">
+              <input
+                type={showNuevaPassword ? "text" : "password"}
+                value={nuevaPassword}
+                onChange={e => setNuevaPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+              />
+              <button
+                type="button"
+                className="btn-ver-password"
+                onClick={() => setShowNuevaPassword(!showNuevaPassword)}
+              >
+                {showNuevaPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           <div className="perfil-campo">
             <label>Confirmar Contraseña</label>
-            <input
-              type="password"
-              value={confirmarPassword}
-              onChange={e => setConfirmarPassword(e.target.value)}
-              placeholder="Repite la contraseña"
-            />
+            {/* NUEVO: Contenedor relativo con el icono */}
+            <div className="password-input-wrapper">
+              <input
+                type={showConfirmarPassword ? "text" : "password"}
+                value={confirmarPassword}
+                onChange={e => setConfirmarPassword(e.target.value)}
+                placeholder="Repite la contraseña"
+              />
+              <button
+                type="button"
+                className="btn-ver-password"
+                onClick={() => setShowConfirmarPassword(!showConfirmarPassword)}
+              >
+                {showConfirmarPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           {mensajePassword && (

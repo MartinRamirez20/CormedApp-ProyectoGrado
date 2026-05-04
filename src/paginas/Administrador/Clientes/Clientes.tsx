@@ -61,11 +61,46 @@ const FORM_VACIO: FormCliente = {
 
 const REGISTROS_POR_PAGINA = 10;
 
-/* ── Formato Fecha───────────────────────────────────────────────────────── */
+/* ── Helpers de Validación y Formateo ───────────────────────────────────── */
 const formatFecha = (iso: string) =>
   new Date(iso).toLocaleDateString('es-CO', {
     day: '2-digit', month: 'numeric', year: 'numeric',
   });
+
+// Función centralizada para mostrar errores específicos
+const validarCliente = (form: FormCliente): string | null => {
+  if (!form.nombre_personal.trim()) return 'El nombre personal es obligatorio.';
+  
+  const idLimpia = form.numero_identificacion.trim();
+  
+  const soloNumeros = idLimpia.replace(/-/g, ''); // 1. Creamos una versión que solo tenga los números para contar cuántos hay
+  if (soloNumeros.length < 3 || soloNumeros.length > 10) { 
+    return 'La identificación debe tener entre 3 y 10 números.'; // 2. Validamos la cantidad de números (Independiente de si hay guion o no)
+  }
+  if (!/^[\d-]+$/.test(idLimpia)) { // 3. Validamos que no haya caracteres raros (solo números y guion permitido)
+    return 'La identificación solo permite números y el carácter "-".';
+  }
+  if ((idLimpia.match(/-/g) || []).length > 1) { // 4. Validamos que solo haya un guion (como pediste antes)
+    return 'Solo se permite un guion en la identificación.';
+  }
+
+  if (!form.telefono_principal.trim()) return 'El teléfono principal es obligatorio.';
+  if (!/^\d{1,10}$/.test(form.telefono_principal)) return 'El teléfono principal debe contener solo números (máximo 10).';
+
+  if (form.telefono_alternativo && !/^\d{1,10}$/.test(form.telefono_alternativo)) {
+    return 'El teléfono alternativo debe contener solo números (máximo 10).';
+  }
+
+  if (form.correo && form.correo.trim() !== '') {
+    // Regex básica para validar correo con '@' y '.'
+    const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!correoRegex.test(form.correo)) return 'El correo debe tener un formato válido (incluir "@" y un dominio como ".com").';
+  }
+
+  if (!form.vendedor_id) return 'Debe asignar un vendedor.';
+
+  return null; // Null significa que todo está perfecto
+};
 
 /* ── Componente ─────────────────────────────────────────────────────────── */
 const Clientes: React.FC = () => {
@@ -213,8 +248,10 @@ const Clientes: React.FC = () => {
   const handleGuardarEdicion = async () => {
     if (!modalEditar) return;
 
-    if (!formEditar.nombre_personal || !formEditar.numero_identificacion || !formEditar.telefono_principal) {
-      setMensajeEditar({ tipo: 'error', texto: 'Nombre, identificación y teléfono son obligatorios.' });
+    // Ejecutar nueva validación detallada
+    const errorValidacion = validarCliente(formEditar);
+    if (errorValidacion) {
+      setMensajeEditar({ tipo: 'error', texto: errorValidacion });
       return;
     }
 
@@ -271,17 +308,17 @@ const Clientes: React.FC = () => {
 
   /* ── Crear cliente ────────────────────────────────────────────────────── */
   const handleCrearCliente = async () => {
-    const { nombre_personal, numero_identificacion, telefono_principal, vendedor_id } = formCrear;
-
-    if (!nombre_personal || !numero_identificacion || !telefono_principal || !vendedor_id) {
-      setMensajeCrear({ tipo: 'error', texto: 'Nombre, identificación, teléfono y vendedor son obligatorios.' });
+    // Ejecutar nueva validación detallada
+    const errorValidacion = validarCliente(formCrear);
+    if (errorValidacion) {
+      setMensajeCrear({ tipo: 'error', texto: errorValidacion });
       return;
     }
 
     setCreando(true);
     setMensajeCrear(null);
 
-    const vendedorSeleccionado = vendedores.find(v => v.id === vendedor_id);
+    const vendedorSeleccionado = vendedores.find(v => v.id === formCrear.vendedor_id);
 
     const { error } = await supabase.from('clientes').insert({
       nombre_personal:       formCrear.nombre_personal,
@@ -548,7 +585,36 @@ const Clientes: React.FC = () => {
                 </div>
                 <div className="perfil-campo">
                   <label>Número identificación *</label>
-                  <input value={formEditar.numero_identificacion} onChange={e => setFormEditar(p => ({ ...p, numero_identificacion: e.target.value }))} />
+                  <input 
+                    placeholder="123456789" 
+                    value={formEditar.numero_identificacion} // Correcto para editar
+                    onChange={e => {
+                      const val = e.target.value;
+                      // 1. Solo permite números y guiones
+                      const filtrado = val.replace(/[^\d-]/g, '');
+                      
+                      // 2. Solo permite un guion
+                      const partes = filtrado.split('-');
+                      let final = partes.length > 2 
+                        ? partes[0] + '-' + partes.slice(1).join('') 
+                        : filtrado;
+
+                      // 3. LIMITAR A 10 NÚMEROS (sin contar el guion)
+                      const soloNumeros = final.replace(/-/g, '');
+                      if (soloNumeros.length > 10) {
+                        // Si se pasa de 10, reconstruimos el string respetando el guion pero cortando el exceso
+                        const indiceGuion = final.indexOf('-');
+                        const limpia = soloNumeros.slice(0, 10);
+                        if (indiceGuion !== -1) {
+                          final = limpia.slice(0, indiceGuion) + '-' + limpia.slice(indiceGuion);
+                        } else {
+                          final = limpia;
+                        }
+                      }
+
+                      setFormEditar(p => ({ ...p, numero_identificacion: final }));
+                    }} 
+                  />
                 </div>
               </div>
 
@@ -560,11 +626,19 @@ const Clientes: React.FC = () => {
               <div className="form-fila">
                 <div className="perfil-campo">
                   <label>Teléfono principal *</label>
-                  <input value={formEditar.telefono_principal} onChange={e => setFormEditar(p => ({ ...p, telefono_principal: e.target.value }))} />
+                  <input 
+                    value={formEditar.telefono_principal} 
+                    // Remueve todo lo que no sea número y limita a 10 dígitos
+                    onChange={e => setFormEditar(p => ({ ...p, telefono_principal: e.target.value.replace(/\D/g, '').slice(0, 10) }))} 
+                  />
                 </div>
                 <div className="perfil-campo">
                   <label>Teléfono alternativo</label>
-                  <input value={formEditar.telefono_alternativo} onChange={e => setFormEditar(p => ({ ...p, telefono_alternativo: e.target.value }))} />
+                  <input 
+                    value={formEditar.telefono_alternativo} 
+                    // Remueve todo lo que no sea número y limita a 10 dígitos
+                    onChange={e => setFormEditar(p => ({ ...p, telefono_alternativo: e.target.value.replace(/\D/g, '').slice(0, 10) }))} 
+                  />
                 </div>
               </div>
               <div className="perfil-campo">
@@ -574,7 +648,7 @@ const Clientes: React.FC = () => {
 
               <p className="detalle-seccion-titulo">Vendedor</p>
               <div className="perfil-campo">
-                <label>Vendedor asignado</label>
+                <label>Vendedor asignado *</label>
                 <select
                   value={formEditar.vendedor_id}
                   onChange={e => setFormEditar(p => ({ ...p, vendedor_id: e.target.value }))}
@@ -655,7 +729,32 @@ const Clientes: React.FC = () => {
                 </div>
                 <div className="perfil-campo">
                   <label>Número identificación *</label>
-                  <input placeholder="123456789" value={formCrear.numero_identificacion} onChange={e => setFormCrear(p => ({ ...p, numero_identificacion: e.target.value }))} />
+                  <input 
+                    placeholder="123456789" 
+                    value={formCrear.numero_identificacion} 
+                    onChange={e => {
+                      const val = e.target.value;
+                      const filtrado = val.replace(/[^\d-]/g, '');
+                      const partes = filtrado.split('-');
+                      let final = partes.length > 2 
+                        ? partes[0] + '-' + partes.slice(1).join('') 
+                        : filtrado;
+
+                      // Limitar a 10 números efectivos
+                      const soloNumeros = final.replace(/-/g, '');
+                      if (soloNumeros.length > 10) {
+                        const indiceGuion = final.indexOf('-');
+                        const limpia = soloNumeros.slice(0, 10);
+                        if (indiceGuion !== -1) {
+                          final = limpia.slice(0, indiceGuion) + '-' + limpia.slice(indiceGuion);
+                        } else {
+                          final = limpia;
+                        }
+                      }
+
+                      setFormCrear(p => ({ ...p, numero_identificacion: final }));
+                    }} 
+                  />
                 </div>
               </div>
 
@@ -667,11 +766,21 @@ const Clientes: React.FC = () => {
               <div className="form-fila">
                 <div className="perfil-campo">
                   <label>Teléfono principal *</label>
-                  <input placeholder="3001234567" value={formCrear.telefono_principal} onChange={e => setFormCrear(p => ({ ...p, telefono_principal: e.target.value }))} />
+                  <input 
+                    placeholder="3001234567" 
+                    value={formCrear.telefono_principal} 
+                    // Remueve todo lo que no sea número y limita a 10 dígitos
+                    onChange={e => setFormCrear(p => ({ ...p, telefono_principal: e.target.value.replace(/\D/g, '').slice(0, 10) }))} 
+                  />
                 </div>
                 <div className="perfil-campo">
                   <label>Teléfono alternativo</label>
-                  <input placeholder="3009876543" value={formCrear.telefono_alternativo} onChange={e => setFormCrear(p => ({ ...p, telefono_alternativo: e.target.value }))} />
+                  <input 
+                    placeholder="3009876543" 
+                    value={formCrear.telefono_alternativo} 
+                    // Remueve todo lo que no sea número y limita a 10 dígitos
+                    onChange={e => setFormCrear(p => ({ ...p, telefono_alternativo: e.target.value.replace(/\D/g, '').slice(0, 10) }))} 
+                  />
                 </div>
               </div>
               <div className="perfil-campo">
