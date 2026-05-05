@@ -19,6 +19,7 @@ import Clientes from './paginas/Administrador/Clientes/Clientes';
 import Tienda from './paginas/Administrador/Tienda/Tienda';
 import Pedidos from './paginas/Administrador/Pedidos/Pedidos';
 import CrearPedido from './paginas/Administrador/Pedidos/Crearpedido';
+import EditarPedido from './paginas/Administrador/Pedidos/EditarPedido';
 
 import VendedorLayout    from './paginas/Vendedor/layout/MainLayout';
 import VendedorDashboard from './paginas/Vendedor/Dashboard';
@@ -337,6 +338,7 @@ function App() {
             <Route index element={<Pedidos />} />
             <Route path="crear" element={<CrearPedido />} />
           </Route>
+          <Route path="/admin/pedidos/editar/:id" element={<EditarPedido />} />
         </Route>
 
         <Route

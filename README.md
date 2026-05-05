@@ -292,6 +292,21 @@ Lo mismo para Usuarios (Terminado)
 
 Se agrega ver contraseña para Login y Perfil
 
-### Correciones en 'Crearpedido.tsx' y 'Pedidos.tsx' (4/05/2026)
 
+### Correciones en 'Crearpedido.tsx' (4/05/2026)
+
+Se permite la consulta del stock en los pedidos, haciendo que no se puedan vender mas productos de los que haya.
+
+Se permite la facturacion a empleados con el descuento del 12%
+
+Se crea una funcion en la BD para que cuando se cree un pedido se descuente del stock.
+
+Se agregan iconos y se modifican estilos.
+
+
+### Correciones en 'Pedidos.tsx' y creación 'EditarPedido.tsx' (4/05/2026)
+
+Se hace un cambio en el modal 'Editando Detalle' haciendo que conduzca al componente EditarPedido.tsx para editar mejor el producto.
+
+Si un pedido se cambia del estado 'Pendiente' a 'Confirmado' este ya no se podrá editar.
 

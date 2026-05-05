@@ -19,7 +19,7 @@ interface Producto {
 interface Pedido {
   id: number;
   referencia: string;
-  cliente_id: number;
+  cliente_id: string; // Adaptado para soportar UUID o BIGINT
   cliente_nombre: string;
   vendedor_id: string;
   vendedor_nombre: string;
@@ -52,7 +52,6 @@ const Pedidos: React.FC = () => {
   const [filtroEstado, setFiltroEstado] = useState<string>('todos');
 
   const [modalDetalle, setModalDetalle]   = useState<Pedido | null>(null);
-  const [modalEditar, setModalEditar]     = useState<Pedido | null>(null);
   const [modalEliminar, setModalEliminar] = useState<Pedido | null>(null);
   const [guardando, setGuardando]         = useState(false);
   const [mensaje, setMensaje]             = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
@@ -115,35 +114,9 @@ const Pedidos: React.FC = () => {
       <FaSortDown style={{ marginLeft: '4px', verticalAlign: 'middle' }} />;
   };
 
-  // ── Paginación ─────────────────────────────────────────────────────────────
   const totalPaginas = Math.ceil(filtrados.length / REGISTROS_POR_PAGINA);
   const inicio       = (pagina - 1) * REGISTROS_POR_PAGINA;
   const paginados    = pedidosOrdenados.slice(inicio, inicio + REGISTROS_POR_PAGINA);
-
-  // ── Editar pedido ──────────────────────────────────────────────────────────
-  const handleGuardarEdicion = async () => {
-    if (!modalEditar) return;
-    setGuardando(true);
-    setMensaje(null);
-
-    const { error } = await supabase
-      .from('pedidos')
-      .update({
-        notas:               modalEditar.notas,
-        estado:              modalEditar.estado,
-        fecha_actualizacion: new Date().toISOString(),
-      })
-      .eq('id', modalEditar.id);
-
-    if (error) {
-      setMensaje({ tipo: 'error', texto: `Error: ${error.message}` });
-    } else {
-      setMensaje({ tipo: 'ok', texto: '¡Pedido actualizado!' });
-      await cargarPedidos();
-      setTimeout(() => { setModalEditar(null); setMensaje(null); }, 1200);
-    }
-    setGuardando(false);
-  };
 
   // ── Eliminar pedido ────────────────────────────────────────────────────────
   const handleEliminar = async () => {
@@ -183,20 +156,15 @@ const Pedidos: React.FC = () => {
 
   return (
     <div className="pedidos-page">
-      {/* ── Header ── */}
       <div className="pedidos-header">
         <h2 className="pedidos-title">
           <i className="bi bi-bag"></i> Pedidos
         </h2>
-        <button
-          className="btn-nuevo-pedido"
-          onClick={() => navigate('/admin/pedidos/crear')}
-        >
+        <button className="btn-nuevo-pedido" onClick={() => navigate('/admin/pedidos/crear')}>
           <FaPlus /> Nuevo Pedido
         </button>
       </div>
 
-      {/* ── Tarjetas resumen ── */}
       <div className="pedidos-stats">
         {[
           { label: 'Total Pedidos', value: pedidos.length, color: 'stat-total' },
@@ -212,14 +180,12 @@ const Pedidos: React.FC = () => {
       </div>
 
       <div className="dash-card">
-        {/* ── Toolbar ── */}
         <div className="pedidos-toolbar">
           <div className="pedidos-toolbar-left">
             <span className="toolbar-label">Mostrar</span>
             <span className="toolbar-count">{filtrados.length}</span>
             <span className="toolbar-label">registros</span>
 
-            {/* Filtro de estado */}
             <div className="filtro-estado-group">
               {['todos', 'pendiente', 'confirmado', 'facturado'].map(e => (
                 <button
@@ -253,24 +219,12 @@ const Pedidos: React.FC = () => {
               <table className="pedidos-table">
                 <thead>
                   <tr>
-                    <th onClick={() => handleSort('referencia')} style={{ cursor: 'pointer' }}>
-                      Referencia{sortIcon('referencia')}
-                    </th>
-                    <th onClick={() => handleSort('cliente_nombre')} style={{ cursor: 'pointer' }}>
-                      Cliente{sortIcon('cliente_nombre')}
-                    </th>
-                    <th onClick={() => handleSort('vendedor_nombre')} style={{ cursor: 'pointer' }}>
-                      Vendedor{sortIcon('vendedor_nombre')}
-                    </th>
-                    <th onClick={() => handleSort('monto_total')} style={{ cursor: 'pointer' }}>
-                      Total{sortIcon('monto_total')}
-                    </th>
-                    <th onClick={() => handleSort('estado')} style={{ cursor: 'pointer' }}>
-                      Estado{sortIcon('estado')}
-                    </th>
-                    <th onClick={() => handleSort('fecha_creacion')} style={{ cursor: 'pointer' }}>
-                      Fecha{sortIcon('fecha_creacion')}
-                    </th>
+                    <th onClick={() => handleSort('referencia')} style={{ cursor: 'pointer' }}>Referencia{sortIcon('referencia')}</th>
+                    <th onClick={() => handleSort('cliente_nombre')} style={{ cursor: 'pointer' }}>Cliente{sortIcon('cliente_nombre')}</th>
+                    <th onClick={() => handleSort('vendedor_nombre')} style={{ cursor: 'pointer' }}>Vendedor{sortIcon('vendedor_nombre')}</th>
+                    <th onClick={() => handleSort('monto_total')} style={{ cursor: 'pointer' }}>Total{sortIcon('monto_total')}</th>
+                    <th onClick={() => handleSort('estado')} style={{ cursor: 'pointer' }}>Estado{sortIcon('estado')}</th>
+                    <th onClick={() => handleSort('fecha_creacion')} style={{ cursor: 'pointer' }}>Fecha{sortIcon('fecha_creacion')}</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -285,11 +239,7 @@ const Pedidos: React.FC = () => {
                       <td className="cliente-cell"><div>{p.cliente_nombre}</div></td>
                       <td>{p.vendedor_nombre}</td>
                       <td className="monto-cell">{formatCurrency(p.monto_total)}</td>
-                      <td>
-                        <span className={getEstadoBadge(p.estado)}>
-                          {getEstadoLabel(p.estado)}
-                        </span>
-                      </td>
+                      <td><span className={getEstadoBadge(p.estado)}>{getEstadoLabel(p.estado)}</span></td>
                       <td>{formatFecha(p.fecha_creacion)}</td>
                       <td>
                         <div className="pedidos-acciones">
@@ -300,11 +250,12 @@ const Pedidos: React.FC = () => {
                           >
                             <FaEye className="icons" />
                           </button>
+                          {/* ── AQUÍ EL CAMBIO CLAVE: Navegamos a EditarPedido ── */}
                           <button
                             className="btn-accion btn-editar"
-                            title="Editar pedido"
+                            title="Editar pedido completo"
                             disabled={p.estado === 'facturado'}
-                            onClick={() => p.estado !== 'facturado' && setModalEditar({ ...p })}
+                            onClick={() => p.estado !== 'facturado' && navigate(`/admin/pedidos/editar/${p.id}`)}
                           >
                             <FaEdit className="icons" />
                           </button>
@@ -324,29 +275,16 @@ const Pedidos: React.FC = () => {
               </table>
             </div>
 
-            {/* ── Paginación ── */}
             <div className="pedidos-paginacion">
               <span className="paginacion-info">
-                Mostrando {filtrados.length === 0 ? 0 : inicio + 1} al{' '}
-                {Math.min(inicio + REGISTROS_POR_PAGINA, filtrados.length)} de{' '}
-                {filtrados.length} registros
+                Mostrando {filtrados.length === 0 ? 0 : inicio + 1} al {Math.min(inicio + REGISTROS_POR_PAGINA, filtrados.length)} de {filtrados.length} registros
               </span>
               <div className="paginacion-botones">
-                <button className="btn-pagina" disabled={pagina === 1} onClick={() => setPagina(p => p - 1)}>
-                  Anterior
-                </button>
+                <button className="btn-pagina" disabled={pagina === 1} onClick={() => setPagina(p => p - 1)}>Anterior</button>
                 {Array.from({ length: totalPaginas }, (_, i) => (
-                  <button
-                    key={i + 1}
-                    className={`btn-pagina ${pagina === i + 1 ? 'activa' : ''}`}
-                    onClick={() => setPagina(i + 1)}
-                  >
-                    {i + 1}
-                  </button>
+                  <button key={i + 1} className={`btn-pagina ${pagina === i + 1 ? 'activa' : ''}`} onClick={() => setPagina(i + 1)}>{i + 1}</button>
                 ))}
-                <button className="btn-pagina" disabled={pagina === totalPaginas || totalPaginas === 0} onClick={() => setPagina(p => p + 1)}>
-                  Siguiente
-                </button>
+                <button className="btn-pagina" disabled={pagina === totalPaginas || totalPaginas === 0} onClick={() => setPagina(p => p + 1)}>Siguiente</button>
               </div>
             </div>
           </>
@@ -377,17 +315,11 @@ const Pedidos: React.FC = () => {
                 )}
               </div>
 
-              {/* Tabla de productos */}
               <h4 className="detalle-subtitulo">Productos</h4>
               <table className="detalle-productos-table">
                 <thead>
                   <tr>
-                    <th>Referencia</th>
-                    <th>Nombre</th>
-                    <th>Cant.</th>
-                    <th>P. Unitario</th>
-                    <th>IVA %</th>
-                    <th>Subtotal</th>
+                    <th>Referencia</th><th>Nombre</th><th>Cant.</th><th>P. Unitario</th><th>IVA %</th><th>Subtotal</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -406,56 +338,6 @@ const Pedidos: React.FC = () => {
             </div>
             <div className="modal-footer">
               <button className="btn-modal-cancelar" onClick={() => setModalDetalle(null)}>Cerrar</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Modal Editar ── */}
-      {modalEditar && (
-        <div className="modal-overlay" onClick={() => setModalEditar(null)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Editar Pedido — <span className="ref-tag">{modalEditar.referencia}</span></h3>
-              <button className="modal-cerrar" onClick={() => setModalEditar(null)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="perfil-campo">
-                <label>Estado</label>
-                <select
-                  value={modalEditar.estado}
-                  onChange={e => setModalEditar(prev =>
-                    prev ? { ...prev, estado: e.target.value as Pedido['estado'] } : prev
-                  )}
-                >
-                  {/* Si está confirmado, permite volver a pendiente */}
-                  <option value="pendiente">Pendiente</option>
-                  <option value="confirmado">Confirmado</option>
-                  {/* No se permite cambiar manualmente a facturado desde aquí */}
-                </select>
-                {modalEditar.estado === 'confirmado' && (
-                  <p className="pedidos-aviso">⚠️ Puedes revertir a Pendiente para editar el pedido.</p>
-                )}
-              </div>
-              <div className="perfil-campo">
-                <label>Notas</label>
-                <textarea
-                  rows={3}
-                  value={modalEditar.notas ?? ''}
-                  onChange={e => setModalEditar(prev => prev ? { ...prev, notas: e.target.value } : prev)}
-                />
-              </div>
-              {mensaje && (
-                <p className={`perfil-mensaje ${mensaje.tipo === 'ok' ? 'perfil-ok' : 'perfil-error'}`}>
-                  {mensaje.texto}
-                </p>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button className="btn-modal-cancelar" onClick={() => setModalEditar(null)}>Cancelar</button>
-              <button className="perfil-btn-guardar" onClick={handleGuardarEdicion} disabled={guardando}>
-                {guardando ? 'Guardando...' : 'Guardar Cambios'}
-              </button>
             </div>
           </div>
         </div>

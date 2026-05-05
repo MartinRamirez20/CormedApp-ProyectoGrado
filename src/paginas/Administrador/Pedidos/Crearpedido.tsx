@@ -3,18 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase.ts';
 import './Crearpedido.css';
 
-import { FaSearch, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaSearch, FaPlus, FaTrash, FaArrowLeft, FaSave} from 'react-icons/fa';
 
 // ── Interfaces ─────────────────────────────────────────────────────────────
-interface Cliente {
-  id: number;
-  nombre_personal: string;
-  nombre_comercial: string | null;
+interface Comprador {
+  id: string | number; // BIGINT (Clientes) o UUID (Vendedores/Usuarios)
+  nombre: string;
+  identificacion: string;
   tipo_identificacion: string;
-  numero_identificacion: string;
   correo: string | null;
-  telefono_principal: string;
+  telefono: string;
   direccion: string | null;
+  esVendedor: boolean; // Bandera clave para aplicar el descuento del 12%
 }
 
 interface ProductoBD {
@@ -24,7 +24,7 @@ interface ProductoBD {
   presentacion: string | null;
   precio: number;
   iva: number;
-  stock: number; // Asegúrate de que se llame 'stock' y no 'stock_actual'
+  stock: number;
   activo: boolean;
 }
 
@@ -36,6 +36,7 @@ interface LineaPedido {
   precio_unitario: number;
   iva_porcentaje: number;
   subtotal: number;
+  stock_disponible: number; // Agregado para validar el máximo
 }
 
 interface UsuarioSesion {
@@ -47,9 +48,8 @@ interface UsuarioSesion {
 const formatCurrency = (v: number) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
 
-// ── Datos de la empresa (configura según tu proyecto) ─────────────────────
 const EMPRESA = {
-  nombre:    'Mi Empresa S.A.S.',
+  nombre:    'Comercializadora Médica CORMED S.A.S.',
   nit:       '900.123.456-7',
   direccion: 'Calle 123 # 45-67, Bogotá D.C.',
   telefono:  '+57 601 234 5678',
@@ -57,7 +57,6 @@ const EMPRESA = {
   url:       'www.miempresa.com',
 };
 
-// Genera un número de referencia único
 const generarReferencia = () => {
   const now   = new Date();
   const yy    = String(now.getFullYear()).slice(2);
@@ -74,12 +73,12 @@ const CrearPedido: React.FC = () => {
   const [vendedor, setVendedor]     = useState<UsuarioSesion | null>(null);
   const [referencia]                = useState(generarReferencia());
 
-  // ── Cliente ───────────────────────────────────────────────────────────────
-  const [clientes, setClientes]           = useState<Cliente[]>([]);
-  const [busqCliente, setBusqCliente]     = useState('');
-  const [clienteFiltrados, setClienteF]  = useState<Cliente[]>([]);
-  const [clienteSelec, setClienteSelec]  = useState<Cliente | null>(null);
-  const [dropCliente, setDropCliente]    = useState(false);
+  // ── Compradores (Clientes + Vendedores) ──────────────────────────────────
+  const [compradores, setCompradores]       = useState<Comprador[]>([]);
+  const [busqComprador, setBusqComprador]   = useState('');
+  const [compradoresFilt, setCompradoresFilt]= useState<Comprador[]>([]);
+  const [compradorSelec, setCompradorSelec] = useState<Comprador | null>(null);
+  const [dropComprador, setDropComprador]   = useState(false);
 
   // ── Productos ─────────────────────────────────────────────────────────────
   const [productos, setProductos]        = useState<ProductoBD[]>([]);
@@ -98,7 +97,7 @@ const CrearPedido: React.FC = () => {
   // ── Cargar datos ──────────────────────────────────────────────────────────
   useEffect(() => {
     const cargarTodo = async () => {
-      // Sesión
+      // 1. Sesión
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const { data: u } = await supabase
@@ -109,17 +108,38 @@ const CrearPedido: React.FC = () => {
         if (u) setVendedor(u);
       }
 
-      // Clientes
-      const { data: cls } = await supabase
-        .from('clientes')
-        .select('id, nombre_personal, nombre_comercial, tipo_identificacion, numero_identificacion, correo, telefono_principal, direccion')
-        .order('nombre_personal');
-      if (cls) setClientes(cls as Cliente[]);
+      // 2. Cargar Clientes
+      const { data: cls } = await supabase.from('clientes').select('*');
+      const listaClientes: Comprador[] = (cls || []).map(c => ({
+        id: c.id,
+        nombre: c.nombre_comercial ? `${c.nombre_personal} (${c.nombre_comercial})` : c.nombre_personal,
+        identificacion: c.numero_identificacion,
+        tipo_identificacion: c.tipo_identificacion,
+        correo: c.correo,
+        telefono: c.telefono_principal,
+        direccion: c.direccion,
+        esVendedor: false
+      }));
 
-      // Productos
+      // 3. Cargar Vendedores (Usuarios) como posibles compradores
+      const { data: usrs } = await supabase.from('usuarios').select('*');
+      const listaVendedores: Comprador[] = (usrs || []).map(u => ({
+        id: u.id,
+        nombre: u.nombre_razon_social,
+        identificacion: u.numero_identificacion,
+        tipo_identificacion: u.tipo_identificacion,
+        correo: u.correo,
+        telefono: u.telefono || '',
+        direccion: 'Vendedor Interno',
+        esVendedor: true
+      }));
+
+      setCompradores([...listaClientes, ...listaVendedores]);
+
+      // 4. Productos
       const { data: prods } = await supabase
         .from('productos')
-        .select('id, codigo, nombre, presentacion, precio, iva, activo')
+        .select('id, codigo, nombre, presentacion, precio, iva, stock, activo')
         .eq('activo', true)
         .order('nombre');
 
@@ -128,17 +148,16 @@ const CrearPedido: React.FC = () => {
     cargarTodo();
   }, []);
 
-  // ── Filtro cliente ────────────────────────────────────────────────────────
+  // ── Filtro comprador ────────────────────────────────────────────────────────
   useEffect(() => {
-    const q = busqCliente.toLowerCase();
-    setClienteF(
-      clientes.filter(c =>
-        c.nombre_personal.toLowerCase().includes(q) ||
-        (c.nombre_comercial ?? '').toLowerCase().includes(q) ||
-        c.numero_identificacion.toLowerCase().includes(q)
+    const q = busqComprador.toLowerCase();
+    setCompradoresFilt(
+      compradores.filter(c =>
+        c.nombre.toLowerCase().includes(q) ||
+        c.identificacion.toLowerCase().includes(q)
       ).slice(0, 8)
     );
-  }, [busqCliente, clientes]);
+  }, [busqComprador, compradores]);
 
   // ── Filtro producto ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -146,17 +165,27 @@ const CrearPedido: React.FC = () => {
     setProdFiltrados(
       productos.filter(p =>
         p.nombre.toLowerCase().includes(q) ||
-        p.codigo.toLowerCase().includes(q) // Corrección: era p.referencia
+        p.codigo.toLowerCase().includes(q)
       ).slice(0, 8)
     );
   }, [busqProducto, productos]);
 
   // ── Agregar producto al pedido ────────────────────────────────────────────
   const agregarProducto = (prod: ProductoBD) => {
+    // VALIDACIÓN 1: No agregar si el stock es cero
+    if (prod.stock <= 0) {
+      setMensaje({ tipo: 'error', texto: `El producto ${prod.nombre} está agotado.` });
+      return;
+    }
+
     const yaExiste = lineas.find(l => l.producto_id === prod.id);
     if (yaExiste) {
-      // Incrementar cantidad si ya existe
-      cambiarCantidad(prod.id, yaExiste.cantidad + 1); // se quito prod.stock_actual
+      // VALIDACIÓN 2: No superar el stock si ya está agregado
+      if (yaExiste.cantidad + 1 > prod.stock) {
+        setMensaje({ tipo: 'error', texto: `Stock insuficiente para ${prod.nombre}. Máximo: ${prod.stock}` });
+        return;
+      }
+      cambiarCantidad(prod.id, yaExiste.cantidad + 1, prod.stock);
     } else {
       const nueva: LineaPedido = {
         producto_id:     prod.id,
@@ -166,22 +195,29 @@ const CrearPedido: React.FC = () => {
         precio_unitario: prod.precio,
         iva_porcentaje:  prod.iva,
         subtotal:        prod.precio,
+        stock_disponible:prod.stock,
       };
       setLineas(prev => [...prev, nueva]);
+      setMensaje(null); // Limpiar errores
     }
     setBusqProducto('');
     setDropProducto(false);
   };
 
-  const cambiarCantidad = useCallback((prodId: number, nuevaCant: number) => {
+  const cambiarCantidad = useCallback((prodId: number, nuevaCant: number, maxStock: number) => {
     if (nuevaCant < 1) return;
+    if (nuevaCant > maxStock) return; // VALIDACIÓN: Evita superar stock tipeando manualmente
+
     setLineas(prev => prev.map(l => {
       if (l.producto_id !== prodId) return l;
       return { ...l, cantidad: nuevaCant, subtotal: nuevaCant * l.precio_unitario };
     }));
-  }, []); // Ya no depende de 'productos'
+  }, []);
 
   const cambiarPrecio = (prodId: number, nuevoPrecio: number) => {
+    // VALIDACIÓN: El precio no puede ser menor o igual a 0
+    if (nuevoPrecio <= 0) return; 
+
     setLineas(prev => prev.map(l =>
       l.producto_id === prodId
         ? { ...l, precio_unitario: nuevoPrecio, subtotal: l.cantidad * nuevoPrecio }
@@ -192,19 +228,33 @@ const CrearPedido: React.FC = () => {
   const quitarLinea = (prodId: number) =>
     setLineas(prev => prev.filter(l => l.producto_id !== prodId));
 
-  // ── Totales ───────────────────────────────────────────────────────────────
-  const subtotalGeneral = lineas.reduce((acc, l) => acc + l.subtotal, 0);
-  const ivaGeneral      = lineas.reduce((acc, l) => acc + (l.subtotal * l.iva_porcentaje / 100), 0);
-  const totalGeneral    = subtotalGeneral + ivaGeneral;
+  // ── Totales (Lógica Descuento a Vendedores) ────────────────────────────────
+  const subtotalBruto = lineas.reduce((acc, l) => acc + l.subtotal, 0);
+  
+  // Descuento del 12% si el comprador es un vendedor de la empresa
+  const aplicarDescuento = compradorSelec?.esVendedor;
+  const descuentoPorcentaje = aplicarDescuento ? 0.12 : 0;
+  const montoDescuentoTotal = subtotalBruto * descuentoPorcentaje;
+  
+  const subtotalConDescuento = subtotalBruto - montoDescuentoTotal;
+
+  // Calculamos el IVA sobre los subtotales con su respectivo descuento aplicado
+  const ivaGeneral = lineas.reduce((acc, l) => {
+    const descLinea = l.subtotal * descuentoPorcentaje;
+    const baseIva = l.subtotal - descLinea;
+    return acc + (baseIva * l.iva_porcentaje / 100);
+  }, 0);
+
+  const totalGeneral = subtotalConDescuento + ivaGeneral;
 
   // ── Guardar pedido ────────────────────────────────────────────────────────
   const handleCrear = async () => {
-    if (!clienteSelec) {
-      setMensaje({ tipo: 'error', texto: 'Debes seleccionar un cliente.' });
+    if (!compradorSelec) {
+      setMensaje({ tipo: 'error', texto: 'Debes seleccionar un cliente o vendedor.' });
       return;
     }
     if (lineas.length === 0) {
-      setMensaje({ tipo: 'error', texto: 'Agrega al menos un producto al pedido.' });
+      setMensaje({ tipo: 'error', texto: 'Agrega al menos un producto.' });
       return;
     }
     if (!vendedor) {
@@ -215,6 +265,7 @@ const CrearPedido: React.FC = () => {
     setCreando(true);
     setMensaje(null);
 
+    // Preparamos el JSON de productos
     const productosJSON = lineas.map(l => ({
       id:              l.producto_id,
       referencia:      l.referencia,
@@ -225,25 +276,25 @@ const CrearPedido: React.FC = () => {
       subtotal:        l.subtotal,
     }));
 
-    const { error } = await supabase.from('pedidos').insert({
-      referencia,
-      cliente_id:      clienteSelec.id,
-      cliente_nombre:  clienteSelec.nombre_personal,
-      vendedor_id:     vendedor.id,
-      vendedor_nombre: vendedor.nombre_razon_social,
-      productos:       productosJSON,
-      monto_subtotal:  subtotalGeneral,
-      monto_iva:       ivaGeneral,
-      monto_total:     totalGeneral,
-      estado:          'pendiente',
-      notas:           notas || null,
+    // LLAMADA A LA FUNCIÓN RPC
+    const { error } = await supabase.rpc('crear_pedido_y_descontar_stock', {
+      p_referencia:      referencia,
+      p_cliente_id:      compradorSelec.id.toString(), // Lo enviamos como string
+      p_cliente_nombre:  compradorSelec.nombre,
+      p_vendedor_id:     vendedor.id,
+      p_vendedor_nombre: vendedor.nombre_razon_social,
+      p_productos:       productosJSON,
+      p_monto_subtotal:  subtotalConDescuento,
+      p_monto_iva:       ivaGeneral,
+      p_monto_total:     totalGeneral,
+      p_notas:           notas ? `${compradorSelec.esVendedor ? '[DCTO VENDEDOR 12%] ' : ''}${notas}` : null,
     });
 
     if (error) {
-      setMensaje({ tipo: 'error', texto: `Error al crear el pedido: ${error.message}` });
+      setMensaje({ tipo: 'error', texto: `Error al procesar: ${error.message}` });
       setCreando(false);
     } else {
-      setMensaje({ tipo: 'ok', texto: '¡Pedido creado exitosamente!' });
+      setMensaje({ tipo: 'ok', texto: '¡Pedido creado y stock actualizado!' });
       setTimeout(() => navigate('/admin/pedidos'), 1500);
     }
   };
@@ -252,15 +303,14 @@ const CrearPedido: React.FC = () => {
   return (
     <div className="crear-pedido-page">
 
-      {/* ── Encabezado de página ── */}
       <div className="cp-page-header">
         <button className="cp-btn-volver" onClick={() => navigate('/admin/pedidos')}>
-          ← Volver a Pedidos
+          <FaArrowLeft /> Volver a Pedidos
         </button>
         <h2 className="cp-page-title">Nuevo Pedido</h2>
         <div className="cp-header-actions">
           <button className="cp-btn-crear" onClick={handleCrear} disabled={creando}>
-            {creando ? 'Guardando...' : 'Guardar Pedido'}
+            <FaSave /> {creando ? 'Guardando...' : 'Guardar Pedido'}
           </button>
         </div>
       </div>
@@ -271,13 +321,8 @@ const CrearPedido: React.FC = () => {
         </div>
       )}
 
-      {/* ── Documento tipo factura ── */}
       <div className="cp-factura">
-
-        {/* ══ CABECERA FACTURA ══ */}
         <div className="cp-factura-header">
-
-          {/* Columna 1: Datos empresa */}
           <div className="cp-col-empresa">
             <div className="cp-empresa-logo">
               {EMPRESA.nombre.charAt(0)}
@@ -288,13 +333,11 @@ const CrearPedido: React.FC = () => {
               <p><span className="cp-lbl">Dir:</span> {EMPRESA.direccion}</p>
               <p><span className="cp-lbl">Tel:</span> {EMPRESA.telefono}</p>
               <p><span className="cp-lbl">Email:</span> {EMPRESA.correo}</p>
-              <p><span className="cp-lbl">Web:</span> {EMPRESA.url}</p>
             </div>
           </div>
 
-          {/* Columna 2: Datos vendedor */}
           <div className="cp-col-vendedor">
-            <div className="cp-seccion-titulo">Vendedor</div>
+            <div className="cp-seccion-titulo">Vendedor a cargo</div>
             {vendedor ? (
               <div className="cp-datos-bloque">
                 <p><span className="cp-lbl">Nombre:</span> {vendedor.nombre_razon_social}</p>
@@ -305,55 +348,55 @@ const CrearPedido: React.FC = () => {
             )}
           </div>
 
-          {/* Columna 3: Número de pedido y cliente */}
           <div className="cp-col-pedido">
             <div className="cp-numero-pedido">
               <span className="cp-num-label">N° PEDIDO</span>
               <span className="cp-num-valor">{referencia}</span>
-              <span className="cp-num-fecha">{new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
             </div>
 
-            <div className="cp-seccion-titulo" style={{ marginTop: 16 }}>Cliente</div>
+            <div className="cp-seccion-titulo" style={{ marginTop: 16 }}>Facturar A (Cliente / Vendedor)</div>
             <div className="cp-cliente-buscador">
               <div className="cp-input-icon-wrap">
                 <FaSearch className="cp-input-icon" />
                 <input
                   className="cp-input"
                   type="text"
-                  placeholder="Buscar cliente por nombre o ID..."
-                  value={clienteSelec ? clienteSelec.nombre_personal : busqCliente}
-                  onFocus={() => { setDropCliente(true); if (clienteSelec) { setBusqCliente(''); setClienteSelec(null); } }}
-                  onChange={e => { setBusqCliente(e.target.value); setDropCliente(true); }}
+                  placeholder="Buscar comprador..."
+                  value={compradorSelec ? compradorSelec.nombre : busqComprador}
+                  onFocus={() => { setDropComprador(true); if (compradorSelec) { setBusqComprador(''); setCompradorSelec(null); } }}
+                  onChange={e => { setBusqComprador(e.target.value); setDropComprador(true); }}
                 />
               </div>
-              {dropCliente && clienteFiltrados.length > 0 && (
+              {dropComprador && compradoresFilt.length > 0 && (
                 <div className="cp-dropdown">
-                  {clienteFiltrados.map(c => (
+                  {compradoresFilt.map(c => (
                     <div
                       key={c.id}
                       className="cp-dropdown-item"
-                      onMouseDown={() => { setClienteSelec(c); setBusqCliente(''); setDropCliente(false); }}
+                      onMouseDown={() => { setCompradorSelec(c); setBusqComprador(''); setDropComprador(false); }}
                     >
-                      <span className="cp-drop-nombre">{c.nombre_personal}</span>
-                      <span className="cp-drop-sub">{c.tipo_identificacion} {c.numero_identificacion}</span>
+                      <div className="cp-drop-prod-info">
+                        <span className="cp-drop-nombre">
+                          {c.nombre} {c.esVendedor && <span className="ref-tag" style={{marginLeft: 5}}>Vendedor (-12%)</span>}
+                        </span>
+                        <span className="cp-drop-sub">{c.tipo_identificacion} {c.identificacion}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {clienteSelec && (
+            {compradorSelec && (
               <div className="cp-datos-bloque">
-                <p><span className="cp-lbl">ID:</span> {clienteSelec.tipo_identificacion} {clienteSelec.numero_identificacion}</p>
-                {clienteSelec.correo && <p><span className="cp-lbl">Correo:</span> {clienteSelec.correo}</p>}
-                <p><span className="cp-lbl">Tel:</span> {clienteSelec.telefono_principal}</p>
-                {clienteSelec.direccion && <p><span className="cp-lbl">Dir:</span> {clienteSelec.direccion}</p>}
+                <p><span className="cp-lbl">ID:</span> {compradorSelec.tipo_identificacion} {compradorSelec.identificacion}</p>
+                {compradorSelec.correo && <p><span className="cp-lbl">Correo:</span> {compradorSelec.correo}</p>}
+                <p><span className="cp-lbl">Tel:</span> {compradorSelec.telefono}</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* ══ BUSCADOR DE PRODUCTOS ══ */}
         <div className="cp-productos-header">
           <h4 className="cp-seccion-titulo">Agregar Producto</h4>
           <div className="cp-producto-buscador">
@@ -375,14 +418,13 @@ const CrearPedido: React.FC = () => {
                   <div
                     key={p.id}
                     className="cp-dropdown-item"
-                    onMouseDown={() => agregarProducto(p)} // Corrección: sin validación de stock
+                    onMouseDown={() => agregarProducto(p)}
                   >
                     <div className="cp-drop-prod-info">
                       <span className="cp-drop-nombre">{p.nombre}</span>
-                      <span className="cp-drop-sub">{p.codigo}</span> {/* Corrección: p.codigo */}
+                      <span className="cp-drop-sub">{p.codigo} - <span style={{color: p.stock > 0 ? '#16a34a' : 'red'}}>Stock: {p.stock}</span></span>
                     </div>
                     <div className="cp-drop-prod-right">
-                      {/* Corrección: es p.precio, no p.precio_venta */}
                       <span className="cp-drop-precio">{formatCurrency(p.precio)}</span> 
                     </div>
                   </div>
@@ -392,7 +434,6 @@ const CrearPedido: React.FC = () => {
           </div>
         </div>
 
-        {/* ══ TABLA DE LÍNEAS ══ */}
         <div className="cp-tabla-wrapper">
           <table className="cp-tabla-lineas">
             <thead>
@@ -416,8 +457,7 @@ const CrearPedido: React.FC = () => {
                     </div>
                   </td>
                 </tr>
-              ) : lineas.map(l => {
-                return (
+              ) : lineas.map(l => (
                   <tr key={l.producto_id}>
                     <td><span className="ref-tag">{l.referencia}</span></td>
                     <td className="col-nombre-cell">{l.nombre}</td>
@@ -425,23 +465,22 @@ const CrearPedido: React.FC = () => {
                       <div className="cp-cant-control">
                         <button
                           className="cp-cant-btn"
-                          onClick={() => cambiarCantidad(l.producto_id, l.cantidad - 1)}
+                          onClick={() => cambiarCantidad(l.producto_id, l.cantidad - 1, l.stock_disponible)}
                         >−</button>
                         
                         <input
                           className="cp-cant-input"
                           type="number"
                           min={1}
-                          // max={stockMax} <-- ELIMINADO
+                          max={l.stock_disponible}
                           value={l.cantidad}
-                          onChange={e => cambiarCantidad(l.producto_id, Number(e.target.value))}
+                          onChange={e => cambiarCantidad(l.producto_id, Number(e.target.value), l.stock_disponible)}
                         />
                         
                         <button
                           className="cp-cant-btn"
-                          // Ya no le pasamos el tercer parámetro de stockMax
-                          onClick={() => cambiarCantidad(l.producto_id, l.cantidad + 1)} 
-                          // disabled={l.cantidad >= stockMax} <-- ELIMINADO
+                          onClick={() => cambiarCantidad(l.producto_id, l.cantidad + 1, l.stock_disponible)}
+                          disabled={l.cantidad >= l.stock_disponible}
                         >+</button>
                       </div>
                     </td>
@@ -449,7 +488,7 @@ const CrearPedido: React.FC = () => {
                       <input
                         className="cp-precio-input"
                         type="number"
-                        min={0}
+                        min={1}
                         value={l.precio_unitario}
                         onChange={e => cambiarPrecio(l.producto_id, Number(e.target.value))}
                       />
@@ -462,15 +501,12 @@ const CrearPedido: React.FC = () => {
                       </button>
                     </td>
                   </tr>
-                );
-              })}
+                ))}
             </tbody>
           </table>
         </div>
 
-        {/* ══ PIE FACTURA ══ */}
         <div className="cp-factura-pie">
-          {/* Notas */}
           <div className="cp-notas-col">
             <label className="cp-lbl-campo">Notas del pedido</label>
             <textarea
@@ -482,12 +518,19 @@ const CrearPedido: React.FC = () => {
             />
           </div>
 
-          {/* Totales */}
           <div className="cp-totales-col">
             <div className="cp-total-fila">
-              <span>Subtotal</span>
-              <strong>{formatCurrency(subtotalGeneral)}</strong>
+              <span>Subtotal Bruto</span>
+              <strong>{formatCurrency(subtotalBruto)}</strong>
             </div>
+            
+            {aplicarDescuento && (
+               <div className="cp-total-fila" style={{color: '#dc2626'}}>
+                 <span>Descuento Vendedor (12%)</span>
+                 <strong>- {formatCurrency(montoDescuentoTotal)}</strong>
+               </div>
+            )}
+            
             <div className="cp-total-fila">
               <span>IVA</span>
               <strong>{formatCurrency(ivaGeneral)}</strong>
@@ -499,9 +542,8 @@ const CrearPedido: React.FC = () => {
           </div>
         </div>
 
-      </div>{/* fin cp-factura */}
+      </div>
 
-      {/* Botones inferiores */}
       <div className="cp-bottom-actions">
         <button className="cp-btn-cancelar" onClick={() => navigate('/admin/pedidos')}>
           Cancelar

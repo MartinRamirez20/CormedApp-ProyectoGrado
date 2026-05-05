@@ -22,40 +22,54 @@
   flex: 1;
 }
 
-.cp-btn-volver {
-  background: transparent;
-  border: 1px solid #ddd;
-  color: #555;
-  padding: 8px 14px;
-  border-radius: 7px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.2s;
-  white-space: nowrap;
-}
-
-.cp-btn-volver:hover { background: #f5f5f5; }
-
-.cp-header-actions {
-  display: flex;
-  gap: 10px;
-}
-
+.cp-btn-volver,
 .cp-btn-crear {
-  background: #512da8;
-  color: #fff;
-  border: none;
+  display: flex;         /* Activamos Flexbox */
+  align-items: center;   /* Centrado vertical */
+  justify-content: center;
+  gap: 8px;              /* Espacio exacto entre icono y texto */
   border-radius: 8px;
   padding: 9px 22px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  border: none;
 }
 
-.cp-btn-crear:hover    { background: #4527a0; }
-.cp-btn-crear:disabled { background: #9575cd; cursor: not-allowed; }
+/* Botón de Volver (Ahora con colores de Guardar Pedido) */
+.cp-btn-volver {
+  background: #512da8;
+  color: #fff;
+}
+
+.cp-btn-volver:hover {
+  background: #4527a0;
+  transform: translateY(-1px); /* Efecto sutil de elevación */
+}
+
+/* Botón de Crear/Guardar */
+.cp-btn-crear {
+  background: #512da8;
+  color: #fff;
+}
+
+.cp-btn-crear:hover:not(:disabled) {
+  background: #4527a0;
+  transform: translateY(-1px);
+}
+
+.cp-btn-crear:disabled {
+  background: #9575cd;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.cp-header-actions {
+  display: flex;
+  gap: 10px;
+}
 
 .cp-btn-cancelar {
   background: transparent;
@@ -438,6 +452,7 @@
   font-size: 12px;
   outline: none;
   color: #1e1b2e;
+  background: #fafafa;
 }
 
 .cp-cant-input:focus { border-color: #512da8; }
@@ -472,23 +487,35 @@
   color: #1e1b2e;
 }
 
-/* ── Botón quitar ── */
+/* ── Botón quitar (Papelera) ── */
 .cp-btn-quitar {
   background: #fef2f2;
   border: 1px solid #fecaca;
   color: #dc2626;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 32px;  /* Aumentado ligeramente para mejor click */
+  height: 32px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  transition: background 0.15s;
+  transition: all 0.2s ease;
+  padding: 0; /* Asegura que no haya scroll interno */
+  flex-shrink: 0; /* Evita que la tabla lo comprima */
 }
 
-.cp-btn-quitar:hover { background: #fee2e2; }
+/* Controlar el tamaño del icono FaTrash específicamente */
+.cp-btn-quitar svg {
+  width: 14px;
+  height: 14px;
+  display: block; /* Elimina espacios fantasma bajo el svg */
+}
+
+.cp-btn-quitar:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+  transform: scale(1.05); /* Un pequeño efecto de feedback */
+}
 
 /* ── Estado vacío tabla ── */
 .cp-tabla-vacia {
@@ -599,13 +626,12 @@
    MODO OSCURO
 ══════════════════════════════════════════════ */
 .main-content.dark .cp-page-title    { color: #e2e8f0; }
-.main-content.dark .cp-btn-volver    { border-color: #2d3f6e; color: #94a3b8; }
-.main-content.dark .cp-btn-volver:hover { background: #1a2a4a; }
+.main-content.dark .cp-btn-volver, .main-content.dark .cp-btn-crear { background: #7c3aed; color: #fff;}
+.main-content.dark .cp-btn-volver:hover, .main-content.dark .cp-btn-crear:hover:not(:disabled) { background: #6d28d9;}
 .main-content.dark .cp-btn-cancelar  { border-color: #2d3f6e; color: #94a3b8; }
 .main-content.dark .cp-btn-cancelar:hover { background: #1a2a4a; }
-.main-content.dark .cp-btn-crear     { background: #7c3aed; }
-.main-content.dark .cp-btn-crear:hover { background: #6d28d9; }
-
+.main-content.dark .cp-btn-quitar {background: rgba(220, 38, 38, 0.1);border-color: rgba(220, 38, 38, 0.4);color: #f87171;}
+.main-content.dark .cp-btn-quitar:hover {background: rgba(220, 38, 38, 0.2);border-color: #f87171;color: #ff8a8a;}
 .main-content.dark .cp-factura       { background: #16213e; border-color: #2d3f6e; box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
 .main-content.dark .cp-factura-header{ border-bottom-color: #2d3f6e; }
 .main-content.dark .cp-col-empresa   { border-right-color: #2d3f6e; }
