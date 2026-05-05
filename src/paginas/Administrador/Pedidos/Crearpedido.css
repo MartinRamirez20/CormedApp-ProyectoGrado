@@ -357,12 +357,35 @@
 
 .cp-subtotal { text-align: right; font-weight: 700; color: #1e1b2e; }
 
+/* ── Botón quitar (Papelera) ── */
 .cp-btn-quitar {
-  background: #fef2f2; border: 1px solid #fecaca; color: #dc2626;
-  width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  width: 32px;  /* Aumentado ligeramente para mejor click */
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0; /* Asegura que no haya scroll interno */
+  flex-shrink: 0; /* Evita que la tabla lo comprima */
 }
-.cp-btn-quitar:hover { background: #fee2e2; transform: scale(1.05); }
+
+/* Controlar el tamaño del icono FaTrash específicamente */
+.cp-btn-quitar svg {
+  width: 14px;
+  height: 14px;
+  display: block; /* Elimina espacios fantasma bajo el svg */
+}
+
+.cp-btn-quitar:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+  transform: scale(1.05); /* Un pequeño efecto de feedback */
+}
 
 .cp-tabla-vacia { padding: 32px 0; }
 .cp-empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #bbb; }
@@ -519,11 +542,16 @@
 
 /* Botón quitar */
 .main-content.dark .cp-btn-quitar {
-  background: #2d0a0a;
-  border-color: #7f1d1d;
-  color: #f87171;
+  background: rgba(220, 38, 38, 0.1); /* Fondo rojo muy transparente */
+  border-color: rgba(220, 38, 38, 0.4);
+  color: #f87171; /* Rojo más brillante para que resalte en oscuro */
 }
-.main-content.dark .cp-btn-quitar:hover { background: #3d1010; }
+
+.main-content.dark .cp-btn-quitar:hover {
+  background: rgba(220, 38, 38, 0.2);
+  border-color: #f87171;
+  color: #ff8a8a;
+}
 
 /* Estado vacío tabla */
 .main-content.dark .cp-empty-state { color: #4a5568; }

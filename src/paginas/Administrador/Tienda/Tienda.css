@@ -147,7 +147,8 @@
   outline: none;
   min-width: 240px;
   transition: border-color 0.2s;
-  background-color: #ddd;
+  background-color: #fff;
+  color: #1e1b2e;
 }
 
 .tienda-buscador:focus {

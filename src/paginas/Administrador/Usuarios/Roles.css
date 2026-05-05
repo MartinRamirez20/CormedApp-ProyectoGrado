@@ -78,6 +78,8 @@
   outline: none;
   min-width: 220px;
   transition: border-color 0.2s;
+  background-color: #fff;
+  color: #1e1b2e;
 }
 
 .roles-buscador:focus {

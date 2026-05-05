@@ -95,7 +95,7 @@ const Dashboard: React.FC = () => {
               className="dash-ver-todos"
               onClick={() => navigate('/admin/pedidos')}
             >
-              Ver todos →
+              Ver todos
             </button>
           </div>
 
@@ -119,8 +119,9 @@ const Dashboard: React.FC = () => {
                     <tr
                       key={p.id}
                       className="dash-pedido-row"
-                      onClick={() => navigate('/admin/pedidos')}
-                      title="Ir a pedidos"
+                      // Cambiamos el navigate para enviar el ID del pedido en el state
+                      onClick={() => navigate('/admin/pedidos', { state: { pedidoId: p.id } })}
+                      title="Ver detalle del pedido"
                     >
                       <td>
                         <span className="dash-referencia">{p.referencia}</span>

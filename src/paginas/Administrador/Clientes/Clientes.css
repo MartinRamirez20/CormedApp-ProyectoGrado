@@ -1,4 +1,4 @@
-/* ── Página Clientes ── */
+ /* ── Página Clientes ── */
 .clientes-page {
   display: flex;
   flex-direction: column;
@@ -78,7 +78,8 @@
   outline: none;
   min-width: 240px;
   transition: border-color 0.2s;
-  background-color: #ddd;
+  background-color: #fff;
+  color: #1e1b2e;
 }
 
 .clientes-buscador:focus {

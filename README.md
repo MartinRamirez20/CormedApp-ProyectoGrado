@@ -318,3 +318,12 @@ Si un pedido se cambia del estado 'Pendiente' a 'Confirmado' este ya no se podr√
 Se hace mediante la libreria jspdf
 
 Funciona pero tiene sus errores (Se hace un commit en punto seguro para trabajar desde ahi)
+
+
+### Finalizaci√≥n ADMINISTRADOR (5/05/2026)
+
+Se arreglan detalles minimos en estilos.
+
+Se arregla funcionalidad con 'Ultimos Pedidos' del dashboard y sus estilos
+
+Se busca arreglar las barras de busqueda en Usuarios, Roles, Tienda y Clientes.

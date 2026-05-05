@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../../supabase.ts';
 import './Pedidos.css';
 
@@ -51,8 +51,11 @@ const formatCurrency = (value: number) =>
 const formatFecha = (iso: string) =>
   new Date(iso).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
+// ------ COMPONENTE ----------------------------------------------------------------
+
 const Pedidos: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [pedidos, setPedidos]           = useState<Pedido[]>([]);
   const [filtrados, setFiltrados]       = useState<Pedido[]>([]);
@@ -195,6 +198,22 @@ const Pedidos: React.FC = () => {
   };
 
   useEffect(() => { cargarPedidos(); }, []);
+
+  // Efecto para detectar si venimos del Dashboard con un pedido específico
+  useEffect(() => {
+    // Verificamos si hay un pedidoId en el state y si los pedidos ya terminaron de cargar
+    if (location.state?.pedidoId && pedidos.length > 0) {
+      const pedidoParaAbrir = pedidos.find(p => p.id === location.state.pedidoId);
+      
+      if (pedidoParaAbrir) {
+        setModalDetalle(pedidoParaAbrir);
+        
+        // Limpiamos el estado de la navegación para que no se abra 
+        // cada vez que el usuario regrese a la página o refresque
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state, pedidos]);
 
   // ── Filtros ────────────────────────────────────────────────────────────────
   useEffect(() => {

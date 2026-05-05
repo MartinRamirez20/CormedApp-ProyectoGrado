@@ -184,16 +184,22 @@
 }
 
 .dash-ver-todos {
-  background: none;
+  background: #512da8;
+  color: #fff;
   border: none;
-  color: #512da8;
-  font-size: 12px;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: background 0.2s;
 }
-
-.dash-ver-todos:hover { text-decoration: underline; }
+.dash-ver-todos:hover {
+  background: #4527a0;
+}
 
 .dash-cargando,
 .dash-vacio {
@@ -229,45 +235,18 @@
 }
 
 /* ── Modo oscuro Dashboard ── */
-.main-content.dark .dashboard-page-title {
-  color: #e2e8f0;
-}
+.main-content.dark .dashboard-page-title { color: #e2e8f0; }
+.main-content.dark .dash-card { background: #16213e; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+.main-content.dark .dash-card-title { color: #e2e8f0; }
 
-.main-content.dark .dash-card {
-  background: #16213e;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
+.main-content.dark .resumen-item { background: #1a1a3e; border-color: #2d2d5e; color: #e2e8f0; }
+.main-content.dark .resumen-item:hover {background: #2a2a5e; border-color: #a78bfa; color: #e2e8f0;}
 
-.main-content.dark .dash-card-title {
-  color: #e2e8f0;
-}
+.main-content.dark .btn-detalle { background: #7c3aed; color: #e2e8f0; color: #e2e8f0; }
+.main-content.dark .btn-detalle:hover { background: #6d28d9; color: #e2e8f0; }
 
-.main-content.dark .resumen-item {
-  background: #1a1a3e;
-  border-color: #2d2d5e;
-  color: #e2e8f0;
-}
+.main-content.dark .pedidos-table th { background: #0f3460; color: #a0aec0; border-bottom-color: #1a1a4e; }
+.main-content.dark .pedidos-table td { color: #e2e8f0; border-bottom-color: #1a2a4a; }
 
-.main-content.dark .resumen-item:hover {
-  background: #2a2a5e;
-  border-color: #a78bfa;
-}
-
-.main-content.dark .pedidos-table th {
-  background: #0f3460;
-  color: #a0aec0;
-  border-bottom-color: #1a1a4e;
-}
-
-.main-content.dark .pedidos-table td {
-  color: #e2e8f0;
-  border-bottom-color: #1a2a4a;
-}
-
-.main-content.dark .btn-detalle {
-  background: #7c3aed;
-}
-
-.main-content.dark .btn-detalle:hover {
-  background: #6d28d9;
-}
+.main-content.dark .dash-ver-todos { background: #7c3aed; color: #e2e8f0; }
+.main-content.dark .dash-ver-todos:hover { background: #6d28d9; color: #e2e8f0; }

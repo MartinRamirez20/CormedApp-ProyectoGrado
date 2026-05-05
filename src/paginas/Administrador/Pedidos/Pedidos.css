@@ -71,7 +71,7 @@
   outline: none;
   min-width: 220px;
   transition: border-color 0.2s;
-  background-color: #f5f5f5;
+  background-color: #fff;
   color: #1e1b2e;
 }
 .pedidos-buscador:focus { border-color: #512da8; }
@@ -291,7 +291,7 @@
 .main-content.dark .monto-cell { color: #e2e8f0; }
 
 /* FIX: Hover de filas en modo oscuro — evita el blanco */
-.main-content.dark .pedidos-table tbody tr:hover { background: #1c2e50; }
+.main-content.dark .pedidos-table tbody tr:hover td { background: #1c2e50; }
 
 /* ref-tag */
 .main-content.dark .ref-tag { background: #2d1f6e; color: #a78bfa; }
