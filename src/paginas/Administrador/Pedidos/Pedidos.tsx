@@ -3,8 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase.ts';
 import './Pedidos.css';
 
-// Icons
-import { FaEye, FaEdit, FaTrash, FaPlus, FaSortUp, FaSortDown} from 'react-icons/fa';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { FaEye, FaEdit, FaTrash, FaPlus, FaSortUp, FaSortDown, FaFilePdf } from 'react-icons/fa';
+
+const EMPRESA = {
+  nombre:    'Comercializadora Médica CORMED S.A.S.',
+  nit:       '900.123.456-7',
+  direccion: 'Calle 123 # 45-67, Bogotá D.C.',
+  telefono:  '+57 601 234 5678',
+  correo:    'ventas@miempresa.com',
+  url:       'www.miempresa.com',
+};
 
 interface Producto {
   id: number;
@@ -19,7 +29,7 @@ interface Producto {
 interface Pedido {
   id: number;
   referencia: string;
-  cliente_id: string; // Adaptado para soportar UUID o BIGINT
+  cliente_id: string; 
   cliente_nombre: string;
   vendedor_id: string;
   vendedor_nombre: string;
@@ -54,12 +64,120 @@ const Pedidos: React.FC = () => {
   const [modalDetalle, setModalDetalle]   = useState<Pedido | null>(null);
   const [modalEliminar, setModalEliminar] = useState<Pedido | null>(null);
   const [guardando, setGuardando]         = useState(false);
-  const [mensaje, setMensaje]             = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
 
   const [orden, setOrden] = useState<{ columna: string; direccion: 'asc' | 'desc' }>({
     columna: 'id',
     direccion: 'desc',
   });
+
+  // ── Generar PDF Asíncrono (Busca datos faltantes en BD) ──────────────
+  const handleDescargarPDF = async (pedido: Pedido) => {
+    try {
+      // Buscar Vendedor
+      const { data: vendedorBD } = await supabase.from('usuarios').select('*').eq('id', pedido.vendedor_id).single();
+      
+      // Buscar Cliente (Puede ser un Cliente en BIGINT o un Vendedor en UUID)
+      let clienteBD = null;
+      const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pedido.cliente_id);
+      
+      if (esUUID) {
+        const { data } = await supabase.from('usuarios').select('*').eq('id', pedido.cliente_id).single();
+        if (data) clienteBD = data;
+      } else {
+        const { data } = await supabase.from('clientes').select('*').eq('id', pedido.cliente_id).single();
+        if (data) clienteBD = data;
+      }
+
+      const doc = new jsPDF();
+      const margin = 14;
+      const colWidth = 60; 
+
+      // --- ENCABEZADO ---
+      doc.setFontSize(18);
+      doc.setTextColor(81, 45, 168);
+      doc.text("COTIZACIÓN / PEDIDO", margin, 20);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Referencia: ${pedido.referencia} | Fecha: ${formatFecha(pedido.fecha_creacion)}`, margin, 28);
+
+      doc.setDrawColor(230, 230, 230);
+      doc.line(margin, 32, 196, 32);
+
+      // --- BLOQUE DE 3 COLUMNAS ---
+      let yPos = 40;
+      doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
+
+      // Columna 1: Empresa
+      doc.setFont("helvetica", "bold");
+      doc.text("EMISOR", margin, yPos);
+      doc.setFont("helvetica", "normal");
+      doc.text([
+        EMPRESA.nombre,
+        `NIT: ${EMPRESA.nit}`,
+        `Dir: ${EMPRESA.direccion}`,
+        `Tel: ${EMPRESA.telefono}`,
+        `Email: ${EMPRESA.correo}`
+      ], margin, yPos + 5);
+
+      // Columna 2: Vendedor
+      const col2X = margin + colWidth + 5;
+      doc.setFont("helvetica", "bold");
+      doc.text("VENDEDOR", col2X, yPos);
+      doc.setFont("helvetica", "normal");
+      doc.text([
+        pedido.vendedor_nombre,
+        `Email: ${vendedorBD?.correo || 'N/A'}`,
+        `Tel: ${vendedorBD?.telefono || 'N/A'}`
+      ], col2X, yPos + 5);
+
+      // Columna 3: Cliente
+      const col3X = margin + (colWidth * 2) + 10;
+      doc.setFont("helvetica", "bold");
+      doc.text("FACTURAR A", col3X, yPos);
+      doc.setFont("helvetica", "normal");
+      
+      const datosCliente = [pedido.cliente_nombre];
+      if (clienteBD?.nombre_comercial) datosCliente.push(`Comercial: ${clienteBD.nombre_comercial}`);
+      datosCliente.push(`ID: ${clienteBD?.numero_identificacion || 'N/A'}`);
+      datosCliente.push(`Email: ${clienteBD?.correo || 'N/A'}`);
+      
+      const telCliente = clienteBD?.telefono_principal || clienteBD?.telefono || 'N/A';
+      datosCliente.push(`Tel: ${telCliente}`);
+      
+      if (clienteBD?.telefono_alternativo) datosCliente.push(`Tel 2: ${clienteBD.telefono_alternativo}`);
+      datosCliente.push(`Dir: ${clienteBD?.direccion || 'N/A'}`);
+
+      doc.text(datosCliente, col3X, yPos + 5);
+
+      // --- TABLA DE PRODUCTOS ---
+      autoTable(doc, {
+        startY: yPos + 45,
+        head: [["Referencia", "Producto", "Cant.", "P. Unitario", "IVA", "Subtotal"]],
+        body: pedido.productos.map(p => [
+          p.referencia, p.nombre, p.cantidad, 
+          formatCurrency(p.precio_unitario), `${p.iva_porcentaje}%`, formatCurrency(p.subtotal)
+        ]),
+        headStyles: { fillColor: [81, 45, 168] },
+        styles: { fontSize: 8 }
+      });
+
+      // --- TOTALES ---
+      const finalY = (doc as any).lastAutoTable.finalY + 10;
+      doc.setFontSize(10);
+      doc.text(`Subtotal: ${formatCurrency(pedido.monto_subtotal)}`, 196, finalY, { align: 'right' });
+      doc.text(`IVA: ${formatCurrency(pedido.monto_iva)}`, 196, finalY + 6, { align: 'right' });
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(`TOTAL: ${formatCurrency(pedido.monto_total)}`, 196, finalY + 14, { align: 'right' });
+
+      doc.save(`Factura_${pedido.referencia}.pdf`);
+    } catch (error) {
+      console.error("Error generando el PDF:", error);
+      alert("Hubo un error al recopilar los datos para el PDF.");
+    }
+  };
 
   // ── Cargar pedidos ─────────────────────────────────────────────────────────
   const cargarPedidos = async () => {
@@ -110,8 +228,8 @@ const Pedidos: React.FC = () => {
   const sortIcon = (col: string) => {
     if (orden.columna !== col) return null;
     return orden.direccion === 'asc' ? 
-      <FaSortUp style={{ marginLeft: '4px', verticalAlign: 'middle' }} /> : 
-      <FaSortDown style={{ marginLeft: '4px', verticalAlign: 'middle' }} />;
+      <FaSortUp className="sort-icon" /> : 
+      <FaSortDown className="sort-icon" />;
   };
 
   const totalPaginas = Math.ceil(filtrados.length / REGISTROS_POR_PAGINA);
@@ -219,12 +337,12 @@ const Pedidos: React.FC = () => {
               <table className="pedidos-table">
                 <thead>
                   <tr>
-                    <th onClick={() => handleSort('referencia')} style={{ cursor: 'pointer' }}>Referencia{sortIcon('referencia')}</th>
-                    <th onClick={() => handleSort('cliente_nombre')} style={{ cursor: 'pointer' }}>Cliente{sortIcon('cliente_nombre')}</th>
-                    <th onClick={() => handleSort('vendedor_nombre')} style={{ cursor: 'pointer' }}>Vendedor{sortIcon('vendedor_nombre')}</th>
-                    <th onClick={() => handleSort('monto_total')} style={{ cursor: 'pointer' }}>Total{sortIcon('monto_total')}</th>
-                    <th onClick={() => handleSort('estado')} style={{ cursor: 'pointer' }}>Estado{sortIcon('estado')}</th>
-                    <th onClick={() => handleSort('fecha_creacion')} style={{ cursor: 'pointer' }}>Fecha{sortIcon('fecha_creacion')}</th>
+                    <th className="sortable-col" onClick={() => handleSort('referencia')}>Referencia{sortIcon('referencia')}</th>
+                    <th className="sortable-col" onClick={() => handleSort('cliente_nombre')}>Cliente{sortIcon('cliente_nombre')}</th>
+                    <th className="sortable-col" onClick={() => handleSort('vendedor_nombre')}>Vendedor{sortIcon('vendedor_nombre')}</th>
+                    <th className="sortable-col" onClick={() => handleSort('monto_total')}>Total{sortIcon('monto_total')}</th>
+                    <th className="sortable-col" onClick={() => handleSort('estado')}>Estado{sortIcon('estado')}</th>
+                    <th className="sortable-col" onClick={() => handleSort('fecha_creacion')}>Fecha{sortIcon('fecha_creacion')}</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -243,31 +361,41 @@ const Pedidos: React.FC = () => {
                       <td>{formatFecha(p.fecha_creacion)}</td>
                       <td>
                         <div className="pedidos-acciones">
-                          <button
-                            className="btn-accion btn-ver"
-                            title="Ver detalle"
-                            onClick={() => setModalDetalle(p)}
-                          >
-                            <FaEye className="icons" />
-                          </button>
-                          {/* ── AQUÍ EL CAMBIO CLAVE: Navegamos a EditarPedido ── */}
+                        <button
+                          className="btn-accion btn-ver"
+                          title="Ver detalle"
+                          onClick={() => setModalDetalle(p)}
+                        >
+                          <FaEye className="icons" />
+                        </button>
+
+                        {p.estado === 'pendiente' ? (
                           <button
                             className="btn-accion btn-editar"
-                            title="Editar pedido completo"
-                            disabled={p.estado === 'facturado'}
-                            onClick={() => p.estado !== 'facturado' && navigate(`/admin/pedidos/editar/${p.id}`)}
+                            title="Editar pedido"
+                            onClick={() => navigate(`/admin/pedidos/editar/${p.id}`)}
                           >
                             <FaEdit className="icons" />
                           </button>
+                        ) : (
                           <button
-                            className="btn-accion btn-eliminar"
-                            title="Eliminar pedido"
-                            disabled={p.estado === 'facturado'}
-                            onClick={() => p.estado !== 'facturado' && setModalEliminar(p)}
+                            className="btn-accion btn-pdf"
+                            title="Descargar PDF"
+                            onClick={() => handleDescargarPDF(p)}
                           >
-                            <FaTrash className="icons" />
+                            <FaFilePdf className="icons" />
                           </button>
-                        </div>
+                        )}
+
+                        <button
+                          className="btn-accion btn-eliminar"
+                          title="Eliminar pedido"
+                          disabled={p.estado !== 'pendiente'}
+                          onClick={() => p.estado === 'pendiente' && setModalEliminar(p)}
+                        >
+                          <FaTrash className="icons" />
+                        </button>
+                      </div>
                       </td>
                     </tr>
                   ))}
@@ -291,7 +419,7 @@ const Pedidos: React.FC = () => {
         )}
       </div>
 
-      {/* ── Modal Ver Detalle ── */}
+      {/* Modales sin cambios mayores */}
       {modalDetalle && (
         <div className="modal-overlay" onClick={() => setModalDetalle(null)}>
           <div className="modal-box modal-grande" onClick={e => e.stopPropagation()}>
@@ -343,7 +471,6 @@ const Pedidos: React.FC = () => {
         </div>
       )}
 
-      {/* ── Modal Eliminar ── */}
       {modalEliminar && (
         <div className="modal-overlay" onClick={() => setModalEliminar(null)}>
           <div className="modal-box modal-pequeño" onClick={e => e.stopPropagation()}>

@@ -25,6 +25,8 @@ npm i react-router-dom
 
 npm install react-icons
 
+npm i jspdf jspdf-autotable
+
 
 ## AVANCES DEL PROYECTO
 
@@ -310,3 +312,9 @@ Se hace un cambio en el modal 'Editando Detalle' haciendo que conduzca al compon
 
 Si un pedido se cambia del estado 'Pendiente' a 'Confirmado' este ya no se podrá editar.
 
+
+### Descarga de pedidos en PDF (4/05/2026)
+
+Se hace mediante la libreria jspdf
+
+Funciona pero tiene sus errores (Se hace un commit en punto seguro para trabajar desde ahi)
