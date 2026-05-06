@@ -348,3 +348,10 @@ Se deja vendedor en un punto seguro, se hara la espera de pruebas para verificar
 
 ## INICIO PAGINA FACTURADOR (6/05/2026)
 
+Se arregla problema de roles haciendo cambios en App.tsx y en la base de datos.
+
+Se crea modo oscuro y perfil (Sidebar ya estaba hecho)
+
+Se crean los demas modulos y se arregla la Géstion de Facturacion
+
+Finalmente se crean y arreglan botones en el dashboard

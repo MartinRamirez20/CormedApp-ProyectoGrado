@@ -304,7 +304,7 @@ const Tienda: React.FC = () => {
     <div className="tienda-page">
 
       <div className="tienda-header">
-        <h2 className="tienda-title">Tienda</h2>
+        <h2 className="tienda-title">Catálogo de Tienda</h2>
         <button
           className="btn-nuevo-producto"
           onClick={() => { setFormCrear(FORM_VACIO); setMensajeCrear(null); setModalCrear(true); }}

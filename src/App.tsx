@@ -30,12 +30,14 @@ import PedidosVendedor from './paginas/Vendedor/Pedidos/Pedidos';
 import CrearPedidoVendedor from './paginas/Vendedor/Pedidos/Crearpedido';
 import EditarPedidoVendedor from './paginas/Vendedor/Pedidos/EditarPedido';
 
-import UsuarioLayout    from './paginas/Facturador/layout/MainLayout.tsx';
-import UsuarioDashboard from './paginas/Facturador/Dashboard.tsx';
-
+import FacturadorLayout    from './paginas/Facturador/layout/MainLayout.tsx';
+import FacturadorDashboard from './paginas/Facturador/Dashboard.tsx';
+import PerfilFacturador from './paginas/Facturador/Perfil.tsx';
+import TiendaFacturador from './paginas/Facturador/Tienda/Tienda.tsx';
+import PedidosFacturador from './paginas/Facturador/Pedidos/Pedidos.tsx';
 
 type AuthVista = 'login' | 'recuperar-email';
-type Rol = 'administrador' | 'vendedor' | 'usuario' | null;
+type Rol = 'administrador' | 'vendedor' | 'facturador' | null;
 
 // ── Página dedicada para restablecer contraseña ────────────────────────────
 function PaginaRestablecerPassword() {
@@ -127,7 +129,7 @@ async function obtenerRolUsuario(userId: string): Promise<Rol> {
 
   const nombre = Array.isArray(rolesData) ? rolesData[0]?.nombre : rolesData.nombre;
 
-  if (nombre === 'administrador' || nombre === 'vendedor' || nombre === 'usuario') {
+  if (nombre === 'administrador' || nombre === 'vendedor' || nombre === 'facturador') {
     return nombre;
   }
 
@@ -139,7 +141,7 @@ function rutaPorRol(rol: Rol): string {
   switch (rol) {
     case 'administrador': return '/admin/dashboard';
     case 'vendedor':      return '/vendedor/dashboard';
-    case 'usuario':       return '/usuario/dashboard';
+    case 'facturador':    return '/facturador/dashboard';
     default:              return '/';
   }
 }
@@ -367,15 +369,18 @@ function App() {
         </Route>
 
         <Route
-          path="/usuario"
+          path="/facturador"
           element={
-            usuarioAutenticado && rol === 'usuario'
-              ? <UsuarioLayout onCerrarSesion={handleCerrarSesion} />
+            usuarioAutenticado && rol === 'facturador'
+              ? <FacturadorLayout onCerrarSesion={handleCerrarSesion} />
               : <Navigate to="/" replace />
           }
         >
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<UsuarioDashboard />} />
+          <Route path="dashboard" element={<FacturadorDashboard />} />
+          <Route path="perfil" element={<PerfilFacturador />} />
+          <Route path="tienda" element={<TiendaFacturador />} />
+          <Route path="pedidos" element={<PedidosFacturador />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -4,8 +4,8 @@ import { supabase } from '../../supabase.ts';
 import '../Administrador/Dashboard.css';
 
 // Iconos
-import { FaPlus } from "react-icons/fa";
-import { FaUsersGear, FaUsers, FaBagShopping } from "react-icons/fa6";
+import { FaShoppingCart } from "react-icons/fa";
+import { FaStore } from "react-icons/fa6";
 
 interface Pedido {
   id: number;
@@ -27,6 +27,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const cargarPedidos = async () => {
+      // El facturador necesita ver los pedidos recientes a nivel general
       const { data, error } = await supabase
         .from('pedidos')
         .select('id, referencia, cliente_nombre, monto_total, estado, fecha_creacion')
@@ -60,7 +61,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard-page">
       <div className="dashboard-page-header">
-        <h2 className="dashboard-page-title">Dashboard — Tienda Virtual</h2>
+        <h2 className="dashboard-page-title">Dashboard — Facturador</h2>
       </div>
 
       <div className="dashboard-grid">
@@ -68,21 +69,13 @@ const Dashboard: React.FC = () => {
         <div className="dash-card resumen-card">
           <h5 className="dash-card-title">Funciones Principales</h5>
           <div className="resumen-list">
-            <button className="resumen-item" onClick={() => navigate('/admin/pedidos/crear')}>
-              <FaPlus className="icons"/>
-              <span>Crear Pedidos</span>
+            <button className="resumen-item" onClick={() => navigate('/facturador/pedidos')}>
+              <FaShoppingCart className="icons"/>
+              <span>Consultar Pedidos</span>
             </button>
-            <button className="resumen-item" onClick={() => navigate('/admin/usuarios', { state: { abrirModalCrear: true } })}>
-              <FaUsersGear className="icons"/>
-              <span>Crear Usuarios</span>
-            </button>
-            <button className="resumen-item" onClick={() => navigate('/admin/tienda', { state: { abrirModalCrear: true } })}>
-              <FaBagShopping className="icons"/>
-              <span>Agregar Productos</span>
-            </button>
-            <button className="resumen-item" onClick={() => navigate('/admin/clientes', { state: { abrirModalCrear: true } })}>
-              <FaUsers className="icons"/>
-              <span>Crear Clientes</span>
+            <button className="resumen-item" onClick={() => navigate('/facturador/tienda')}>
+              <FaStore className="icons"/>
+              <span>Consultar Tienda</span>
             </button>
           </div>
         </div>
@@ -93,7 +86,7 @@ const Dashboard: React.FC = () => {
             <h5 className="dash-card-title">Últimos Pedidos</h5>
             <button
               className="dash-ver-todos"
-              onClick={() => navigate('/admin/pedidos')}
+              onClick={() => navigate('/facturador/pedidos')}
             >
               Ver todos
             </button>
@@ -119,8 +112,8 @@ const Dashboard: React.FC = () => {
                     <tr
                       key={p.id}
                       className="dash-pedido-row"
-                      // Cambiamos el navigate para enviar el ID del pedido en el state
-                      onClick={() => navigate('/admin/pedidos', { state: { pedidoId: p.id } })}
+                      // Navega a la vista del facturador enviando el ID para abrir el modal
+                      onClick={() => navigate('/facturador/pedidos', { state: { pedidoId: p.id } })}
                       title="Ver detalle del pedido"
                     >
                       <td>
