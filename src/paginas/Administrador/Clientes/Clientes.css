@@ -364,6 +364,7 @@
   letter-spacing: 0.04em;
 }
 
+/* ── Formulario crear / editar ── */
 .perfil-campo input,
 .perfil-campo textarea,
 .perfil-campo select {
@@ -374,6 +375,19 @@
   outline: none;
   transition: border-color 0.2s;
   font-family: inherit;
+  /* CORRECCIÓN: Forzamos el fondo blanco en modo claro */
+  background-color: #ffffff; 
+  color: #1e1b2e;
+}
+
+/* Si el campo está deshabilitado (como el del Vendedor), 
+   puedes darle un gris muy ligero para que se note que no es editable */
+.perfil-campo input:disabled,
+.perfil-campo select:disabled,
+.perfil-campo textarea:disabled {
+  background-color: #f9f9f9;
+  color: #888;
+  cursor: not-allowed;
 }
 
 .perfil-campo textarea {

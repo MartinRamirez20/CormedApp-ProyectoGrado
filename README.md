@@ -337,4 +337,14 @@ Se hace una copia de src/paginas/Administrador/Clientes/Clientes.tsx a src/pagin
 
 Se hace lo mismo con Tienda.tsx, aqui el vendedor no podra agregar, editar o eliminar los productos, solo consultarlos.
 
+Se hace lo mismo con Pedidos.tsx, Crearpedido.tsx y EditarPedido.tsx
+
 Se hacen los arreglos correspondientes en App.tsx para que los botones sean funcionales.
+
+Finalmente se modifica el dashboard para hacerlo funcional frente a las nuevas opciones.
+
+Se deja vendedor en un punto seguro, se hara la espera de pruebas para verificar su confiabilidad.
+
+
+## INICIO PAGINA FACTURADOR (6/05/2026)
+

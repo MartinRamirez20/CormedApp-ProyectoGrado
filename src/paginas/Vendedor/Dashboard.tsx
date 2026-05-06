@@ -5,7 +5,7 @@ import '../Administrador/Dashboard.css';
 
 // Iconos
 import { FaPlus } from "react-icons/fa";
-import { FaUsersGear, FaUsers, FaBagShopping } from "react-icons/fa6";
+import { FaUsers, FaBagShopping } from "react-icons/fa6";
 
 interface Pedido {
   id: number;
@@ -27,15 +27,25 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const cargarPedidos = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        setCargando(false);
+        return;
+      }
+
+      // Consulta filtrada por el vendedor en sesión
       const { data, error } = await supabase
         .from('pedidos')
         .select('id, referencia, cliente_nombre, monto_total, estado, fecha_creacion')
+        .eq('vendedor_id', session.user.id)
         .order('fecha_creacion', { ascending: false })
         .limit(5);
 
       if (!error && data) setPedidos(data as Pedido[]);
       setCargando(false);
     };
+    
     cargarPedidos();
   }, []);
 
@@ -60,7 +70,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard-page">
       <div className="dashboard-page-header">
-        <h2 className="dashboard-page-title">Dashboard — Tienda Virtual</h2>
+        <h2 className="dashboard-page-title">Dashboard — Vendedor</h2>
       </div>
 
       <div className="dashboard-grid">
@@ -68,19 +78,20 @@ const Dashboard: React.FC = () => {
         <div className="dash-card resumen-card">
           <h5 className="dash-card-title">Funciones Principales</h5>
           <div className="resumen-list">
-            <button className="resumen-item" onClick={() => navigate('/admin/pedidos/crear')}>
+            {/* Botón Crear Pedido */}
+            <button className="resumen-item" onClick={() => navigate('/vendedor/pedidos/crear')}>
               <FaPlus className="icons"/>
               <span>Crear Pedidos</span>
             </button>
-            <button className="resumen-item" onClick={() => navigate('/admin/usuarios', { state: { abrirModalCrear: true } })}>
-              <FaUsersGear className="icons"/>
-              <span>Crear Usuarios</span>
-            </button>
-            <button className="resumen-item" onClick={() => navigate('/admin/tienda', { state: { abrirModalCrear: true } })}>
+
+            {/* Botón Agregar Productos (Tienda) */}
+            <button className="resumen-item" onClick={() => navigate('/vendedor/tienda', { state: { abrirModalCrear: true } })}>
               <FaBagShopping className="icons"/>
               <span>Agregar Productos</span>
             </button>
-            <button className="resumen-item" onClick={() => navigate('/admin/clientes', { state: { abrirModalCrear: true } })}>
+
+            {/* Botón Crear Clientes (Restaurado y Funcional) */}
+            <button className="resumen-item" onClick={() => navigate('/vendedor/clientes', { state: { abrirModalCrear: true } })}>
               <FaUsers className="icons"/>
               <span>Crear Clientes</span>
             </button>
@@ -90,10 +101,10 @@ const Dashboard: React.FC = () => {
         {/* Últimos Pedidos */}
         <div className="dash-card pedidos-card">
           <div className="dash-card-header">
-            <h5 className="dash-card-title">Últimos Pedidos</h5>
+            <h5 className="dash-card-title">Mis Últimos Pedidos</h5>
             <button
               className="dash-ver-todos"
-              onClick={() => navigate('/admin/pedidos')}
+              onClick={() => navigate('/vendedor/pedidos')}
             >
               Ver todos
             </button>
@@ -119,9 +130,8 @@ const Dashboard: React.FC = () => {
                     <tr
                       key={p.id}
                       className="dash-pedido-row"
-                      // Cambiamos el navigate para enviar el ID del pedido en el state
-                      onClick={() => navigate('/admin/pedidos', { state: { pedidoId: p.id } })}
-                      title="Ver detalle del pedido"
+                      onClick={() => navigate('/vendedor/pedidos')}
+                      title="Ir a lista de pedidos"
                     >
                       <td>
                         <span className="dash-referencia">{p.referencia}</span>

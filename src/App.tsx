@@ -26,6 +26,9 @@ import VendedorDashboard from './paginas/Vendedor/Dashboard';
 import PerfilVendedor from './paginas/Vendedor/Perfil';
 import ClientesVendedor from './paginas/Vendedor/Clientes/Clientes';
 import TiendaVendedor from './paginas/Vendedor/Tienda/Tienda';
+import PedidosVendedor from './paginas/Vendedor/Pedidos/Pedidos';
+import CrearPedidoVendedor from './paginas/Vendedor/Pedidos/Crearpedido';
+import EditarPedidoVendedor from './paginas/Vendedor/Pedidos/EditarPedido';
 
 import UsuarioLayout    from './paginas/Facturador/layout/MainLayout.tsx';
 import UsuarioDashboard from './paginas/Facturador/Dashboard.tsx';
@@ -339,8 +342,8 @@ function App() {
           <Route path="pedidos">
             <Route index element={<Pedidos />} />
             <Route path="crear" element={<CrearPedido />} />
+            <Route path="editar/:id" element={<EditarPedido />} />
           </Route>
-          <Route path="/admin/pedidos/editar/:id" element={<EditarPedido />} />
         </Route>
 
         <Route
@@ -356,6 +359,11 @@ function App() {
           <Route path="perfil" element={<PerfilVendedor />} />
           <Route path="clientes" element={<ClientesVendedor />} />
           <Route path="tienda" element={<TiendaVendedor />} />
+          <Route path="pedidos">
+            <Route index element={<PedidosVendedor />} />
+            <Route path="crear" element={<CrearPedidoVendedor />} />
+            <Route path="editar/:id" element={<EditarPedidoVendedor />} />
+          </Route>
         </Route>
 
         <Route
