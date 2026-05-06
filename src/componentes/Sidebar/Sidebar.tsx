@@ -1,5 +1,5 @@
 // Este Sidebar si esta en uso
-// Se renderiza en el MainLayout de Administrador
+// Se renderiza en el MainLayout general o por roles
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase.ts';
@@ -15,7 +15,8 @@ import { IoIosExit } from "react-icons/io"; //CerrarSesion
 
 interface SidebarProps {
   onCerrarSesion: () => void;
-  rol: 'administrador' | 'vendedor' | 'usuario';
+  // Se agregó 'facturador' a los roles permitidos
+  rol: 'administrador' | 'vendedor' | 'facturador';
 }
 
 interface UsuarioInfo {
@@ -27,16 +28,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState<UsuarioInfo>({ nombre: '...', correo: '' });
-  const [collapsed, setCollapsed] = useState(false); // ← nuevo estado hamburguesa
+  const [collapsed, setCollapsed] = useState(false); 
 
+  // Solo conservamos el estado de expansión de usuarios para el Administrador
   const [usuariosExp, setUsuariosExp] = useState(false);
-  const [tiendaExp,   setTiendaExp]   = useState(false);
-  const [pedidosExp,  setPedidosExp]  = useState(false);
 
+  // Mapa de rutas base según el rol
   const baseMap: Record<string, string> = {
     administrador: '/admin',
     vendedor:      '/vendedor',
-    usuario:       '/usuario',
+    facturador:    '/facturador',
   };
   const base = baseMap[rol] ?? `/${rol}`;
 
@@ -58,13 +59,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Al colapsar, también cerramos todos los submenús abiertos
+  // Al colapsar, cerramos el submenú de administrador si está abierto
   const handleCollapse = () => {
     setCollapsed(prev => {
       if (!prev) {
         setUsuariosExp(false);
-        setTiendaExp(false);
-        setPedidosExp(false);
       }
       return !prev;
     });
@@ -89,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
 
       <nav className="sidebar-nav">
 
-        {/* Dashboard — todos los roles */}
+        {/* Dashboard — todos los roles lo tienen */}
         <Link
           to={`${base}/dashboard`}
           className={`sidebar-link ${isActive(`${base}/dashboard`) ? 'active' : ''}`}
@@ -134,10 +133,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
                 className={`sidebar-link sidebar-toggle ${collapsed && isActive(`${base}/usuarios`) ? 'active' : ''}`}
                 onClick={() => {
                   if (collapsed) {
-                    // Si está encogido, funciona como un Link directo a Todos los usuarios
                     navigate(`${base}/usuarios`);
                   } else {
-                    // Si está expandido, abre/cierra el submenú
                     setUsuariosExp(!usuariosExp);
                   }
                 }}
@@ -164,74 +161,57 @@ const Sidebar: React.FC<SidebarProps> = ({ onCerrarSesion, rol }) => {
         {/* ── Solo Vendedor ── */}
         {rol === 'vendedor' && (
           <>
-            <div className="sidebar-section">
-              <button
-                className="sidebar-link sidebar-toggle"
-                onClick={() => !collapsed && setTiendaExp(!tiendaExp)}
-                title="Tienda"
-              >
-                <FaBagShopping className="sidebar-icon" />
-                {!collapsed && (
-                  <>
-                    <span>Tienda</span>
-                    <i className={`bi bi-chevron-${tiendaExp ? 'down' : 'right'} sidebar-chevron`}></i>
-                  </>
-                )}
-              </button>
-              {!collapsed && tiendaExp && (
-                <div className="sidebar-submenu">
-                  <Link to={`${base}/tienda`} className={`sidebar-sublink ${isActive(`${base}/tienda`)           ? 'active' : ''}`}>Catálogo</Link>
-                  <Link to={`${base}/tienda/faltantes`} className={`sidebar-sublink ${isActive(`${base}/tienda/faltantes`) ? 'active' : ''}`}>Faltantes</Link>
-                </div>
-              )}
-            </div>
+            <Link
+              to={`${base}/clientes`}
+              className={`sidebar-link ${isActive(`${base}/clientes`) ? 'active' : ''}`}
+              title="Clientes"
+            >
+              <FaUsers className="sidebar-icon" />
+              {!collapsed && <span>Clientes</span>}
+            </Link>
 
-            <div className="sidebar-section">
-              <button
-                className="sidebar-link sidebar-toggle"
-                onClick={() => !collapsed && setPedidosExp(!pedidosExp)}
-                title="Pedidos"
-              >
-                <FaShoppingCart className="sidebar-icon" />
-                {!collapsed && (
-                  <>
-                    <span>Pedidos</span>
-                    <i className={`bi bi-chevron-${pedidosExp ? 'down' : 'right'} sidebar-chevron`}></i>
-                  </>
-                )}
-              </button>
-              {!collapsed && pedidosExp && (
-                <div className="sidebar-submenu">
-                  <Link to={`${base}/pedidos`}         className={`sidebar-sublink ${isActive(`${base}/pedidos`)         ? 'active' : ''}`}>Mis Pedidos</Link>
-                  <Link to={`${base}/pedidos/ordenes`} className={`sidebar-sublink ${isActive(`${base}/pedidos/ordenes`) ? 'active' : ''}`}>Órdenes de compra</Link>
-                </div>
-              )}
-            </div>
+            <Link
+              to={`${base}/tienda`}
+              className={`sidebar-link ${isActive(`${base}/tienda`) ? 'active' : ''}`}
+              title="Tienda"
+            >
+              <FaBagShopping className="sidebar-icon" />
+              {!collapsed && <span>Tienda</span>}
+            </Link>
+
+            <Link
+              to={`${base}/pedidos`}
+              className={`sidebar-link ${isActive(`${base}/pedidos`) ? 'active' : ''}`}
+              title="Pedidos"
+            >
+              <FaShoppingCart className="sidebar-icon" />
+              {!collapsed && <span>Pedidos</span>}
+            </Link>
           </>
         )}
 
-        {/* ── Solo Usuario ── */}
-        {rol === 'usuario' && (
+        {/* ── Solo Facturador ── */}
+        {rol === 'facturador' && (
           <>
             <Link
               to={`${base}/tienda`}
               className={`sidebar-link ${isActive(`${base}/tienda`) ? 'active' : ''}`}
-              title="Catálogo"
+              title="Tienda"
             >
               <FaBagShopping className="sidebar-icon" />
-              {!collapsed && <span>Catálogo</span>}
+              {!collapsed && <span>Tienda</span>}
             </Link>
+
             <Link
               to={`${base}/pedidos`}
               className={`sidebar-link ${isActive(`${base}/pedidos`) ? 'active' : ''}`}
-              title="Mis Pedidos"
+              title="Pedidos"
             >
               <FaShoppingCart className="sidebar-icon" />
-              {!collapsed && <span>Mis Pedidos</span>}
+              {!collapsed && <span>Pedidos</span>}
             </Link>
           </>
         )}
-
       </nav>
 
       <div className="sidebar-footer">

@@ -327,3 +327,14 @@ Se arreglan detalles minimos en estilos.
 Se arregla funcionalidad con 'Ultimos Pedidos' del dashboard y sus estilos
 
 Se busca arreglar las barras de busqueda en Usuarios, Roles, Tienda y Clientes.
+
+
+## INICIO PAGINA VENDEDOR (5/05/2026)
+
+Se modifica el Sidebar con las opciones para vendedor
+
+Se hace una copia de src/paginas/Administrador/Clientes/Clientes.tsx a src/paginas/Vendedor/Clientes/Clientes.tsx, heredando los estilos de src/paginas/Administrador/Clientes/Clientes.css. Aqui se debe arreglar el hecho de que el nuevo cliente se debe crear arraigado a los datos del vendedor con sesion activa.
+
+Se hace lo mismo con Tienda.tsx, aqui el vendedor no podra agregar, editar o eliminar los productos, solo consultarlos.
+
+Se hacen los arreglos correspondientes en App.tsx para que los botones sean funcionales.

@@ -24,9 +24,11 @@ import EditarPedido from './paginas/Administrador/Pedidos/EditarPedido';
 import VendedorLayout    from './paginas/Vendedor/layout/MainLayout';
 import VendedorDashboard from './paginas/Vendedor/Dashboard';
 import PerfilVendedor from './paginas/Vendedor/Perfil';
+import ClientesVendedor from './paginas/Vendedor/Clientes/Clientes';
+import TiendaVendedor from './paginas/Vendedor/Tienda/Tienda';
 
-import UsuarioLayout    from './paginas/Usuario/layout/MainLayout';
-import UsuarioDashboard from './paginas/Usuario/Dashboard';
+import UsuarioLayout    from './paginas/Facturador/layout/MainLayout.tsx';
+import UsuarioDashboard from './paginas/Facturador/Dashboard.tsx';
 
 
 type AuthVista = 'login' | 'recuperar-email';
@@ -352,6 +354,8 @@ function App() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<VendedorDashboard />} />
           <Route path="perfil" element={<PerfilVendedor />} />
+          <Route path="clientes" element={<ClientesVendedor />} />
+          <Route path="tienda" element={<TiendaVendedor />} />
         </Route>
 
         <Route
