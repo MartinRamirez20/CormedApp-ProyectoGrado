@@ -114,15 +114,20 @@ const EditarPedido: React.FC = () => {
         esVendedor: false,
       }));
 
-      const { data: usrs } = await supabase.from('usuarios').select('*');
-      const listaVendedores: Comprador[] = (usrs || []).map(u => ({
+      const { data: usrs, error: errUsrs } = await supabase.rpc('obtener_empleados_facturacion');
+      
+      if (errUsrs) {
+        console.error("Error cargando empleados:", errUsrs);
+      }
+
+      const listaVendedores: Comprador[] = (usrs || []).map((u: any) => ({
         id: u.id,
-        nombre: u.nombre_razon_social,
-        identificacion: u.numero_identificacion,
-        tipo_identificacion: u.tipo_identificacion,
+        nombre: u.nombre_razon_social || 'Empleado',
+        identificacion: u.numero_identificacion || 'N/A',
+        tipo_identificacion: u.tipo_identificacion || '',
         correo: u.correo,
         telefono: u.telefono || '',
-        direccion: 'Vendedor Interno',
+        direccion: 'Empleado Interno',
         esVendedor: true,
       }));
 
@@ -171,8 +176,8 @@ const EditarPedido: React.FC = () => {
           setLineas(lineasGuardadas);
 
           let notasLimpias = pedido.notas || '';
-          if (notasLimpias.includes('[DCTO VENDEDOR 12%] ')) {
-            notasLimpias = notasLimpias.replace('[DCTO VENDEDOR 12%] ', '');
+          if (notasLimpias.includes('[DCTO EMPLEADO 12%] ')) {
+            notasLimpias = notasLimpias.replace('[DCTO EMPLEADO 12%] ', '');
           }
           setNotas(notasLimpias);
         }
@@ -312,7 +317,7 @@ const EditarPedido: React.FC = () => {
       p_monto_total:    totalGeneral,
       p_estado:         estadoPedido,
       p_notas:          notas
-        ? `${compradorSelec.esVendedor ? '[DCTO VENDEDOR 12%] ' : ''}${notas}`
+        ? `${compradorSelec.esVendedor ? '[DCTO EMPLEADO 12%] ' : ''}${notas}`
         : null,
     });
 
@@ -414,7 +419,7 @@ const EditarPedido: React.FC = () => {
                       <div className="cp-drop-prod-info">
                         <span className="cp-drop-nombre">
                           {c.nombre}{' '}
-                          {c.esVendedor && <span className="ref-tag">Vendedor (-12%)</span>}
+                          {c.esVendedor && <span className="ref-tag">Empleado (-12%)</span>}
                         </span>
                         <span className="cp-drop-sub">
                           {c.tipo_identificacion} {c.identificacion}
@@ -619,7 +624,7 @@ const EditarPedido: React.FC = () => {
             </div>
             {aplicarDescuento && (
               <div className="cp-total-fila cp-descuento">
-                <span>Dcto Vendedor (12%)</span>
+                <span>Dcto Empleado (12%)</span>
                 <strong>- {formatCurrency(montoDescuentoTotal)}</strong>
               </div>
             )}

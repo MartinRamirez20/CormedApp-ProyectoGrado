@@ -377,3 +377,12 @@ Se soluciona el error a la hora de cambiar los correos, sincronizando la tabla p
 (Ya funciona)
 
 Se modifica parte de Perfil.tsx en Administrador para esto tambien.
+
+
+### Correciones en de pedidos
+
+A la hora de crear y modificar un pedido, el administrador deberia ser capaz de realizar el pedido a su cuenta, la de los empleados y todos los clientes
+
+Los vendedores solo pueden realizar pedidos a sus clientes y a ellos mismos.
+
+(Se corrige parcialmente, aun los administradores no pueden facturar a empleados xd)

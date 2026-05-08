@@ -94,16 +94,25 @@ const CrearPedidoVendedor: React.FC = () => {
   useEffect(() => {
     const cargarTodo = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: u } = await supabase
-          .from('usuarios')
-          .select('id, nombre_razon_social, correo, telefono')
-          .eq('id', session.user.id)
-          .single();
-        if (u) setVendedor(u);
-      }
+      if (!session?.user) return;
+      
+      const userId = session.user.id;
 
-      const { data: cls } = await supabase.from('clientes').select('*');
+      // 1. Cargar datos del vendedor logueado
+      const { data: u } = await supabase
+        .from('usuarios')
+        .select('id, nombre_razon_social, correo, telefono, numero_identificacion, tipo_identificacion')
+        .eq('id', userId)
+        .single();
+        
+      if (u) setVendedor(u);
+
+      // 2. Cargar SOLO los clientes que le pertenecen a este vendedor
+      const { data: cls } = await supabase
+        .from('clientes')
+        .select('*')
+        .eq('vendedor_id', userId);
+
       const listaClientes: Comprador[] = (cls || []).map(c => ({
         id: c.id,
         nombre: c.nombre_personal,
@@ -117,8 +126,8 @@ const CrearPedidoVendedor: React.FC = () => {
         esVendedor: false
       }));
 
-      const { data: usrs } = await supabase.from('usuarios').select('*');
-      const listaVendedores: Comprador[] = (usrs || []).map(u => ({
+      // 3. Cargar SOLO al usuario actual (el mismo vendedor) para facturarse a sí mismo
+      const listaVendedores: Comprador[] = u ? [{
         id: u.id,
         nombre: u.nombre_razon_social,
         identificacion: u.numero_identificacion,
@@ -127,10 +136,11 @@ const CrearPedidoVendedor: React.FC = () => {
         telefono: u.telefono || '',
         direccion: 'Vendedor Interno',
         esVendedor: true
-      }));
+      }] : [];
 
       setCompradores([...listaClientes, ...listaVendedores]);
 
+      // 4. Cargar productos
       const { data: prods } = await supabase
         .from('productos')
         .select('id, codigo, nombre, presentacion, precio, iva, stock, activo')
@@ -139,6 +149,7 @@ const CrearPedidoVendedor: React.FC = () => {
 
       if (prods) setProductos(prods as ProductoBD[]);
     };
+    
     cargarTodo();
   }, []);
 

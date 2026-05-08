@@ -106,26 +106,29 @@ const CrearPedido: React.FC = () => {
       const { data: cls } = await supabase.from('clientes').select('*');
       const listaClientes: Comprador[] = (cls || []).map(c => ({
         id: c.id,
-        nombre: c.nombre_personal,
+        nombre: c.nombre_personal || 'Sin Nombre',
         nombre_comercial: c.nombre_comercial,
-        identificacion: c.numero_identificacion,
-        tipo_identificacion: c.tipo_identificacion,
+        identificacion: c.numero_identificacion || 'N/A',
+        tipo_identificacion: c.tipo_identificacion || '',
         correo: c.correo,
-        telefono: c.telefono_principal,
+        telefono: c.telefono_principal || '',
         telefono_alternativo: c.telefono_alternativo,
         direccion: c.direccion,
         esVendedor: false
       }));
 
-      const { data: usrs } = await supabase.from('usuarios').select('*');
-      const listaVendedores: Comprador[] = (usrs || []).map(u => ({
+      // ✅ FIX: Usamos la función RPC para cargar TODOS los empleados sin bloqueo RLS
+      const { data: usrs, error: errUsrs } = await supabase.rpc('obtener_empleados_facturacion');
+      if (errUsrs) console.error('Error al cargar empleados:', errUsrs);
+      
+      const listaVendedores: Comprador[] = (usrs || []).map((u: any) => ({
         id: u.id,
-        nombre: u.nombre_razon_social,
-        identificacion: u.numero_identificacion,
-        tipo_identificacion: u.tipo_identificacion,
+        nombre: u.nombre_razon_social || 'Empleado',
+        identificacion: u.numero_identificacion || 'N/A',
+        tipo_identificacion: u.tipo_identificacion || '',
         correo: u.correo,
         telefono: u.telefono || '',
-        direccion: 'Vendedor Interno',
+        direccion: 'Empleado Interno',
         esVendedor: true
       }));
 
@@ -146,8 +149,8 @@ const CrearPedido: React.FC = () => {
     const q = busqComprador.toLowerCase();
     setCompradoresFilt(
       compradores.filter(c =>
-        c.nombre.toLowerCase().includes(q) ||
-        c.identificacion.toLowerCase().includes(q)
+        (c.nombre || '').toLowerCase().includes(q) ||
+        (c.identificacion || '').toLowerCase().includes(q)
       ).slice(0, 8)
     );
   }, [busqComprador, compradores]);
@@ -156,8 +159,8 @@ const CrearPedido: React.FC = () => {
     const q = busqProducto.toLowerCase();
     setProdFiltrados(
       productos.filter(p =>
-        p.nombre.toLowerCase().includes(q) ||
-        p.codigo.toLowerCase().includes(q)
+        (p.nombre || '').toLowerCase().includes(q) ||
+        (p.codigo || '').toLowerCase().includes(q)
       ).slice(0, 8)
     );
   }, [busqProducto, productos]);
@@ -253,7 +256,7 @@ const CrearPedido: React.FC = () => {
       p_monto_subtotal:  subtotalConDescuento,
       p_monto_iva:       ivaGeneral,
       p_monto_total:     totalGeneral,
-      p_notas:           notas ? `${compradorSelec.esVendedor ? '[DCTO VENDEDOR 12%] ' : ''}${notas}` : null,
+      p_notas:           notas ? `${compradorSelec.esVendedor ? '[DCTO EMPLEADO 12%] ' : ''}${notas}` : null,
     });
 
     if (error) {
@@ -329,7 +332,7 @@ const CrearPedido: React.FC = () => {
                     <div key={c.id} className="cp-dropdown-item" onMouseDown={() => { setCompradorSelec(c); setBusqComprador(''); setDropComprador(false); }}>
                       <div className="cp-drop-prod-info">
                         <span className="cp-drop-nombre">
-                          {c.nombre} {c.esVendedor && <span className="ref-tag">Vendedor (-12%)</span>}
+                          {c.nombre} {c.esVendedor && <span className="ref-tag">Empleado (-12%)</span>}
                         </span>
                         <span className="cp-drop-sub">{c.tipo_identificacion} {c.identificacion}</span>
                       </div>
@@ -439,7 +442,7 @@ const CrearPedido: React.FC = () => {
           <div className="cp-totales-col">
             <div className="cp-total-fila"><span>Subtotal Bruto</span><strong>{formatCurrency(subtotalBruto)}</strong></div>
             {aplicarDescuento && (
-               <div className="cp-total-fila cp-descuento"><span>Dcto Vendedor (12%)</span><strong>- {formatCurrency(montoDescuentoTotal)}</strong></div>
+               <div className="cp-total-fila cp-descuento"><span>Dcto Empleado (12%)</span><strong>- {formatCurrency(montoDescuentoTotal)}</strong></div>
             )}
             <div className="cp-total-fila"><span>IVA</span><strong>{formatCurrency(ivaGeneral)}</strong></div>
             <div className="cp-total-fila cp-total-final"><span>TOTAL</span><strong>{formatCurrency(totalGeneral)}</strong></div>
