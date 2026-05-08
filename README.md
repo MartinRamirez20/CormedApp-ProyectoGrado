@@ -355,3 +355,17 @@ Se crea modo oscuro y perfil (Sidebar ya estaba hecho)
 Se crean los demas modulos y se arregla la Géstion de Facturacion
 
 Finalmente se crean y arreglan botones en el dashboard
+
+
+## Correciones de errores (8/05/2026)
+
+### Correciones de Perfil
+
+Se agregan expresiones regulares para los campos del formulario
+
+Se agrega un campo comprobando la contraseña actual para cambiar esta a una nueva.
+
+Se agregan parametros para las nuevas contraseñas (min 8 char, 1 Upper, 1 simbolo)
+
+Se debe aplicar lo mismo en facturador y vendedor.
+

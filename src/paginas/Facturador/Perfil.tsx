@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabase.ts';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import '../Administrador/Perfil.css';
 
 type TipoId = 'CC' | 'NIT' | 'PASAPORTE' | 'CE';
@@ -21,11 +22,19 @@ const Perfil: React.FC = () => {
     numero_identificacion: '',
   });
 
-  const [nuevaPassword,    setNuevaPassword]    = useState('');
+  // Estados para la contraseña
+  const [passwordActual, setPasswordActual] = useState('');
+  const [nuevaPassword, setNuevaPassword] = useState('');
   const [confirmarPassword, setConfirmarPassword] = useState('');
+  
   const [guardandoPassword, setGuardandoPassword] = useState(false);
-  const [cargando,          setCargando]          = useState(true);
-  const [mensajePassword,   setMensajePassword]   = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const [mensajePassword, setMensajePassword] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+
+  // Estados para mostrar/ocultar contraseñas
+  const [showPasswordActual, setShowPasswordActual] = useState(false);
+  const [showNuevaPassword, setShowNuevaPassword] = useState(false);
+  const [showConfirmarPassword, setShowConfirmarPassword] = useState(false);
 
   // ── Cargar datos del usuario ──────────────────────────────────────────────
   useEffect(() => {
@@ -53,26 +62,67 @@ const Perfil: React.FC = () => {
     cargar();
   }, []);
 
+  // ── Validaciones de Contraseña ────────────────────────────────────────────
+  const validarReglasPassword = (pass: string): string | null => {
+    if (pass.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
+    if (!/[A-Z]/.test(pass)) return 'Debe contener al menos una letra mayúscula.';
+    if (!/[0-9]/.test(pass)) return 'Debe contener al menos un número.';
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(pass)) return 'Debe contener al menos un símbolo especial.';
+    return null;
+  };
+
   // ── Cambiar contraseña ────────────────────────────────────────────────────
   const handleCambiarPassword = async () => {
     setMensajePassword(null);
 
-    if (nuevaPassword.length < 6) {
-      setMensajePassword({ tipo: 'error', texto: 'La contraseña debe tener al menos 6 caracteres.' });
+    // 1. Validar campos vacíos
+    if (!passwordActual) {
+      setMensajePassword({ tipo: 'error', texto: 'Debes ingresar tu contraseña actual.' });
       return;
     }
+
+    // 2. Validar reglas
+    const errorReglas = validarReglasPassword(nuevaPassword);
+    if (errorReglas) {
+      setMensajePassword({ tipo: 'error', texto: errorReglas });
+      return;
+    }
+
+    // 3. Validar coincidencia
     if (nuevaPassword !== confirmarPassword) {
-      setMensajePassword({ tipo: 'error', texto: 'Las contraseñas no coinciden.' });
+      setMensajePassword({ tipo: 'error', texto: 'Las contraseñas nuevas no coinciden.' });
       return;
     }
 
     setGuardandoPassword(true);
-    const { error } = await supabase.auth.updateUser({ password: nuevaPassword });
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user?.email) {
+      setMensajePassword({ tipo: 'error', texto: 'Error obteniendo la sesión del usuario.' });
+      setGuardandoPassword(false);
+      return;
+    }
 
-    if (error) {
-      setMensajePassword({ tipo: 'error', texto: `Error: ${error.message}` });
+    // 4. Verificación de contraseña actual
+    const { error: errorVerificacion } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: passwordActual,
+    });
+
+    if (errorVerificacion) {
+      setMensajePassword({ tipo: 'error', texto: 'La contraseña actual es incorrecta.' });
+      setGuardandoPassword(false);
+      return;
+    }
+
+    // 5. Actualizar la contraseña
+    const { error: errorActualizacion } = await supabase.auth.updateUser({ password: nuevaPassword });
+
+    if (errorActualizacion) {
+      setMensajePassword({ tipo: 'error', texto: `Error al actualizar: ${errorActualizacion.message}` });
     } else {
-      setMensajePassword({ tipo: 'ok', texto: '¡Contraseña actualizada correctamente!' });
+      setMensajePassword({ tipo: 'ok', texto: '¡Contraseña actualizada de forma segura!' });
+      setPasswordActual('');
       setNuevaPassword('');
       setConfirmarPassword('');
     }
@@ -116,23 +166,60 @@ const Perfil: React.FC = () => {
           <h5 className="dash-card-title">Cambiar Contraseña</h5>
 
           <div className="perfil-campo">
+            <label>Contraseña Actual</label>
+            <div className="password-input-wrapper">
+              <input
+                type={showPasswordActual ? "text" : "password"}
+                value={passwordActual}
+                onChange={e => setPasswordActual(e.target.value)}
+                placeholder="Ingresa tu contraseña actual"
+              />
+              <button
+                type="button"
+                className="btn-ver-password"
+                onClick={() => setShowPasswordActual(!showPasswordActual)}
+              >
+                {showPasswordActual ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+          </div>
+
+          <div className="perfil-campo">
             <label>Nueva Contraseña</label>
-            <input
-              type="password"
-              value={nuevaPassword}
-              onChange={e => setNuevaPassword(e.target.value)}
-              placeholder="Mínimo 6 caracteres"
-            />
+            <div className="password-input-wrapper">
+              <input
+                type={showNuevaPassword ? "text" : "password"}
+                value={nuevaPassword}
+                onChange={e => setNuevaPassword(e.target.value)}
+                placeholder="Mínimo 8 caracteres, 1 mayúscula, 1 número y 1 símbolo"
+              />
+              <button
+                type="button"
+                className="btn-ver-password"
+                onClick={() => setShowNuevaPassword(!showNuevaPassword)}
+              >
+                {showNuevaPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           <div className="perfil-campo">
             <label>Confirmar Contraseña</label>
-            <input
-              type="password"
-              value={confirmarPassword}
-              onChange={e => setConfirmarPassword(e.target.value)}
-              placeholder="Repite la contraseña"
-            />
+            <div className="password-input-wrapper">
+              <input
+                type={showConfirmarPassword ? "text" : "password"}
+                value={confirmarPassword}
+                onChange={e => setConfirmarPassword(e.target.value)}
+                placeholder="Repite la contraseña"
+              />
+              <button
+                type="button"
+                className="btn-ver-password"
+                onClick={() => setShowConfirmarPassword(!showConfirmarPassword)}
+              >
+                {showConfirmarPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           {mensajePassword && (
