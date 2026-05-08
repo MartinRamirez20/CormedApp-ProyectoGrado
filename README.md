@@ -369,3 +369,11 @@ Se agregan parametros para las nuevas contraseñas (min 8 char, 1 Upper, 1 simbo
 
 Se debe aplicar lo mismo en facturador y vendedor.
 
+
+### Correciones en correos
+
+Se soluciona el error a la hora de cambiar los correos, sincronizando la tabla publica con la de autenticacion en supabase.
+
+(Ya funciona)
+
+Se modifica parte de Perfil.tsx en Administrador para esto tambien.

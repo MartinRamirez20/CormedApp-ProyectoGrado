@@ -86,6 +86,7 @@ const Perfil: React.FC = () => {
   };
 
   // ── Guardar datos personales ──────────────────────────────────────────────
+  // ── Guardar datos personales ──────────────────────────────────────────────
   const handleGuardarDatos = async () => {
     setGuardando(true);
     setMensajeDatos(null);
@@ -97,16 +98,13 @@ const Perfil: React.FC = () => {
       return;
     }
 
-    // VALIDACIÓN DE LONGITUD: Identificación entre 3 y 10 (la máxima ya se controla en el change)
+    // VALIDACIÓN DE LONGITUD: Identificación
     if (form.numero_identificacion.length < 3) {
-      setMensajeDatos({ 
-        tipo: 'error', 
-        texto: 'El número de identificación debe tener entre 3 y 10 dígitos.' 
-      });
+      setMensajeDatos({ tipo: 'error', texto: 'El número de identificación debe tener entre 3 y 10 dígitos.' });
       setGuardando(false);
       return;
     }
-    
+
     // Validar formato de correo
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.correo)) {
@@ -118,11 +116,13 @@ const Perfil: React.FC = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // 1. Actualizar tabla public.usuarios
+    // ACTUALIZACIÓN ÚNICA A LA TABLA PÚBLICA
+    // El trigger en SQL se encargará automáticamente de actualizar el Auth (login)
     const { error: errorPublic } = await supabase
       .from('usuarios')
       .update({
         nombre_razon_social:   form.nombre_razon_social,
+        correo:                form.correo, // Lo enviamos directo aquí
         telefono:              form.telefono,
         tipo_identificacion:   form.tipo_identificacion,
         numero_identificacion: form.numero_identificacion,
@@ -131,21 +131,14 @@ const Perfil: React.FC = () => {
       .eq('id', user.id);
 
     if (errorPublic) {
-      setMensajeDatos({ tipo: 'error', texto: `Error al guardar: ${errorPublic.message}` });
+      // Si el correo ya lo tiene otro usuario, Postgres arrojará un error de "Unique constraint"
+      if (errorPublic.code === '23505') {
+        setMensajeDatos({ tipo: 'error', texto: 'Error: Este correo electrónico o número de identificación ya está en uso por otra persona.' });
+      } else {
+        setMensajeDatos({ tipo: 'error', texto: `Error al guardar: ${errorPublic.message}` });
+      }
       setGuardando(false);
       return;
-    }
-
-    // 2. Si cambió el correo, actualizar también en Auth
-    if (form.correo !== datos.correo) {
-      const { error: errorAuth } = await supabase.auth.updateUser({ email: form.correo });
-      if (errorAuth) {
-        setMensajeDatos({ tipo: 'error', texto: `Datos guardados, pero error al cambiar correo: ${errorAuth.message}` });
-        setGuardando(false);
-        return;
-      }
-      // Actualizar correo también en public.usuarios
-      await supabase.from('usuarios').update({ correo: form.correo }).eq('id', user.id);
     }
 
     setDatos({ ...form });
