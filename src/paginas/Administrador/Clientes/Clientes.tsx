@@ -159,6 +159,10 @@ const Clientes: React.FC = () => {
     const { data } = await supabase
       .from('usuarios')
       .select('id, nombre_razon_social')
+      // Excluimos explícitamente a los facturadores (rol_id = 3)
+      .neq('rol_id', 3) 
+      // Alternativa si en el futuro agregas más roles y SÓLO quieres admin y vendedor:
+      // .in('rol_id', [1, 2]) 
       .order('nombre_razon_social');
 
     if (data) {

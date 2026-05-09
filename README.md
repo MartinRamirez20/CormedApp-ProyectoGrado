@@ -395,3 +395,8 @@ Se ha notado que al borrar un usuario este no se borra de auth.
 Se crea una edge function para esto
 
 Ademas se modifica usuarios.tsx para que no sea posible borrar vendedores con clientes.
+
+
+### Correcion pequeña en asignar vendedor
+
+Los facturadores no deberian tener clientes
