@@ -386,3 +386,12 @@ A la hora de crear y modificar un pedido, el administrador deberia ser capaz de 
 Los vendedores solo pueden realizar pedidos a sus clientes y a ellos mismos.
 
 (Se corrige parcialmente, aun los administradores no pueden facturar a empleados xd)
+
+
+### Correcion en eliminar usuario
+
+Se ha notado que al borrar un usuario este no se borra de auth.
+
+Se crea una edge function para esto
+
+Ademas se modifica usuarios.tsx para que no sea posible borrar vendedores con clientes.

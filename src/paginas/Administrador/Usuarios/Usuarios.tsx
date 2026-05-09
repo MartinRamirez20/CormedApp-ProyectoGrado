@@ -96,6 +96,8 @@ const Usuarios: React.FC = () => {
   const [roles, setRoles]                 = useState<{ id: number; nombre: string }[]>([]);
   const [guardando, setGuardando]         = useState(false);
   const [mensaje, setMensaje]             = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+  // Agrega este estado junto a los demás (cerca de línea 50)
+  const [mensajeEliminar, setMensajeEliminar] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
 
   //Link Dashboard
   const location = useLocation(); 
@@ -241,11 +243,33 @@ const Usuarios: React.FC = () => {
   const handleEliminar = async () => {
     if (!modalEliminar) return;
     setGuardando(true);
-    const { error } = await supabase.from('usuarios').delete().eq('id', modalEliminar.id);
-    if (!error) {
-      await cargarUsuarios();
+    setMensajeEliminar(null);
+
+    const { data: { session } } = await supabase.auth.getSession();
+
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/eliminar-usuario`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+          'apikey':        import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ usuario_id: modalEliminar.id }),
+      }
+    );
+
+    const result = await res.json();
+
+    if (!res.ok || result.error) {
+      setMensajeEliminar({ tipo: 'error', texto: result.error ?? 'Error al eliminar el usuario.' });
+    } else {
+      setMensajeEliminar(null);
       setModalEliminar(null);
+      await cargarUsuarios();
     }
+
     setGuardando(false);
   };
 
@@ -524,18 +548,29 @@ const Usuarios: React.FC = () => {
 
       {/* ── Modal Confirmar Eliminar ── */}
       {modalEliminar && (
-        <div className="modal-overlay" onClick={() => setModalEliminar(null)}>
+        <div className="modal-overlay" onClick={() => { setModalEliminar(null); setMensajeEliminar(null); }}>
           <div className="modal-box modal-pequeño" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Eliminar Usuario</h3>
-              <button className="modal-cerrar" onClick={() => setModalEliminar(null)}><FaTimes /></button>
+              <button className="modal-cerrar" onClick={() => { setModalEliminar(null); setMensajeEliminar(null); }}>
+                <FaTimes />
+              </button>
             </div>
             <div className="modal-body">
               <p>¿Estás seguro de que deseas eliminar a <strong>{modalEliminar.nombre_razon_social}</strong>?</p>
               <p className="usuarios-aviso">Esta acción no se puede deshacer.</p>
+
+              {/* ✅ Aquí aparece el error si lo hay */}
+              {mensajeEliminar && (
+                <p className={`perfil-mensaje ${mensajeEliminar.tipo === 'ok' ? 'perfil-ok' : 'perfil-error'}`}>
+                  {mensajeEliminar.texto}
+                </p>
+              )}
             </div>
             <div className="modal-footer">
-              <button className="btn-modal-cancelar" onClick={() => setModalEliminar(null)}>Cancelar</button>
+              <button className="btn-modal-cancelar" onClick={() => { setModalEliminar(null); setMensajeEliminar(null); }}>
+                Cancelar
+              </button>
               <button className="btn-modal-eliminar" onClick={handleEliminar} disabled={guardando}>
                 {guardando ? 'Eliminando...' : 'Sí, eliminar'}
               </button>
