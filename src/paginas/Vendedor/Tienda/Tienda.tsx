@@ -240,7 +240,7 @@ const TiendaVendedor: React.FC = () => {
                           </div>
                         </td>
                         <td>
-                          <span className={`badge-stock ${p.stock <= 5 ? (p.stock === 0 ? 'badge-stock--agotado' : 'badge-stock--bajo') : ''}`}>
+                          <span className={`badge-stock ${p.stock <= 50 ? (p.stock === 0 ? 'badge-stock--agotado' : 'badge-stock--bajo') : ''}`}>
                             {p.stock === 0 ? 'Agotado' : p.stock}
                           </span>
                         </td>
@@ -339,7 +339,7 @@ const TiendaVendedor: React.FC = () => {
               <div className="detalle-fila">
                 <span>Stock Actual</span>
                 <strong>
-                  <span className={`badge-stock ${modalDetalle.stock <= 5 ? (modalDetalle.stock === 0 ? 'badge-stock--agotado' : 'badge-stock--bajo') : ''}`}>
+                  <span className={`badge-stock ${modalDetalle.stock <= 50 ? (modalDetalle.stock === 0 ? 'badge-stock--agotado' : 'badge-stock--bajo') : ''}`}>
                     {modalDetalle.stock === 0 ? 'Agotado' : `${modalDetalle.stock} Unidades`}
                   </span>
                 </strong>
