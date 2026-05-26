@@ -400,3 +400,13 @@ Ademas se modifica usuarios.tsx para que no sea posible borrar vendedores con cl
 ### Correcion pequeña en asignar vendedor
 
 Los facturadores no deberian tener clientes
+
+
+## Finalización del Software
+
+Se realizan correciones minimas para la presentación del software.
+
+### Correciones definitivas
+
+Se alerta el stock cuando hay menos de 50 unidades.
+

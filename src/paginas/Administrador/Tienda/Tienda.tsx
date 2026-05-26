@@ -416,7 +416,7 @@ const Tienda: React.FC = () => {
                           </div>
                         </td>
                         <td>
-                          <span className={`badge-stock ${p.stock <= 5 ? (p.stock === 0 ? 'badge-stock--agotado' : 'badge-stock--bajo') : ''}`}>
+                          <span className={`badge-stock ${p.stock <= 50 ? (p.stock === 0 ? 'badge-stock--agotado' : 'badge-stock--bajo') : ''}`}>
                             {p.stock === 0 ? 'Agotado' : p.stock}
                           </span>
                         </td>
@@ -493,7 +493,7 @@ const Tienda: React.FC = () => {
       {/* ── Modal Ver Detalle ──────────────────────────────────────────── */}
       {modalDetalle && (
         <div className="modal-overlay" onClick={() => setModalDetalle(null)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-box modal-grande" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Detalle del Producto</h3>
               <button className="modal-cerrar" onClick={() => setModalDetalle(null)}>✕</button>
@@ -528,7 +528,7 @@ const Tienda: React.FC = () => {
               <div className="detalle-fila">
                 <span>Stock Actual</span>
                 <strong>
-                  <span className={`badge-stock ${modalDetalle.stock <= 5 ? (modalDetalle.stock === 0 ? 'badge-stock--agotado' : 'badge-stock--bajo') : ''}`}>
+                  <span className={`badge-stock ${modalDetalle.stock <= 50 ? (modalDetalle.stock === 0 ? 'badge-stock--agotado' : 'badge-stock--bajo') : ''}`}>
                     {modalDetalle.stock === 0 ? 'Agotado' : `${modalDetalle.stock} Unidades`}
                   </span>
                 </strong>
@@ -558,7 +558,7 @@ const Tienda: React.FC = () => {
       {/* ── Modal Editar ──────────────────────────────────────────────── */}
       {modalEditar && (
         <div className="modal-overlay" onClick={() => setModalEditar(null)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-box modal-grande" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Editar Producto</h3>
               <button className="modal-cerrar" onClick={() => setModalEditar(null)}>✕</button>
@@ -690,7 +690,7 @@ const Tienda: React.FC = () => {
       {/* ── Modal Crear Producto ───────────────────────────────────────── */}
       {modalCrear && (
         <div className="modal-overlay" onClick={() => setModalCrear(false)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-box modal-grande" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Nuevo Producto</h3>
               <button className="modal-cerrar" onClick={() => setModalCrear(false)}>✕</button>

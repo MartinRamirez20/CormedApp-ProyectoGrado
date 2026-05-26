@@ -584,7 +584,10 @@ th svg {
   color: #f59e0b;
   font-weight: 500;
 }
-
+.modal-grande {
+  max-width: 650px !important;
+  width: 90% !important;
+}
 /* ═══════════════════════════════════════
    MODO OSCURO
 ═══════════════════════════════════════ */

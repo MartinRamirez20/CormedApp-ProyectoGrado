@@ -304,7 +304,7 @@ const TiendaVendedor: React.FC = () => {
       {/* ── Modal Ver Detalle ──────────────────────────────────────────── */}
       {modalDetalle && (
         <div className="modal-overlay" onClick={() => setModalDetalle(null)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-box modal-grande" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Detalle del Producto</h3>
               <button className="modal-cerrar" onClick={() => setModalDetalle(null)}>✕</button>
