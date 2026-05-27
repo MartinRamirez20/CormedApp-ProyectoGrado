@@ -410,3 +410,5 @@ Se realizan correciones minimas para la presentación del software.
 
 Se alerta el stock cuando hay menos de 50 unidades.
 
+Se agrega la posibilidad de consultar su rol en la sección perfil
+

@@ -11,6 +11,12 @@ interface PerfilData {
   telefono: string;
   tipo_identificacion: TipoId;
   numero_identificacion: string;
+  rol_id: number; // Añadido
+}
+
+interface Rol {
+  id: number;
+  nombre: string;
 }
 
 const Perfil: React.FC = () => {
@@ -20,9 +26,11 @@ const Perfil: React.FC = () => {
     telefono: '',
     tipo_identificacion: 'CC',
     numero_identificacion: '',
+    rol_id: 1,
   });
 
   const [form, setForm] = useState<PerfilData>({ ...datos });
+  const [roles, setRoles] = useState<Rol[]>([]); // Añadido para cargar roles
   
   // Estados para la contraseña
   const [passwordActual, setPasswordActual] = useState('');
@@ -40,15 +48,19 @@ const Perfil: React.FC = () => {
   const [showNuevaPassword, setShowNuevaPassword] = useState(false);
   const [showConfirmarPassword, setShowConfirmarPassword] = useState(false);
 
-  // ── Cargar datos del usuario ──────────────────────────────────────────────
+  // ── Cargar datos del usuario y roles ──────────────────────────────────────
   useEffect(() => {
     const cargar = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Cargar roles
+      const { data: rolesData } = await supabase.from('roles').select('id, nombre');
+      if (rolesData) setRoles(rolesData);
+
       const { data, error } = await supabase
         .from('usuarios')
-        .select('nombre_razon_social, correo, telefono, tipo_identificacion, numero_identificacion')
+        .select('nombre_razon_social, correo, telefono, tipo_identificacion, numero_identificacion, rol_id')
         .eq('id', user.id)
         .single();
 
@@ -59,6 +71,7 @@ const Perfil: React.FC = () => {
           telefono:             data.telefono             ?? '',
           tipo_identificacion:  (data.tipo_identificacion as TipoId) ?? 'CC',
           numero_identificacion: data.numero_identificacion ?? '',
+          rol_id:               data.rol_id               ?? 1,
         };
         setDatos(perfil);
         setForm(perfil);
@@ -72,20 +85,18 @@ const Perfil: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
-    // Validar que solo se ingresen números y controlar longitud máxima
     if (name === 'telefono' || name === 'numero_identificacion') {
       const soloNumeros = value.replace(/\D/g, '');
-      
-      // Limitar a máximo 10 caracteres para ambos campos
       if (soloNumeros.length <= 10) {
         setForm(prev => ({ ...prev, [name]: soloNumeros }));
       }
+    } else if (name === 'rol_id') {
+      setForm(prev => ({ ...prev, [name]: Number(value) }));
     } else {
       setForm(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  // ── Guardar datos personales ──────────────────────────────────────────────
   // ── Guardar datos personales ──────────────────────────────────────────────
   const handleGuardarDatos = async () => {
     setGuardando(true);
@@ -113,25 +124,46 @@ const Perfil: React.FC = () => {
       return;
     }
 
+    // --- REGLA DE NEGOCIO: Evitar quedarse sin administradores ---
+    if (form.rol_id !== datos.rol_id) {
+      const rolAntiguo = roles.find(r => r.id === datos.rol_id);
+      if (rolAntiguo?.nombre.toLowerCase() === 'administrador') {
+        const { count, error: countError } = await supabase
+          .from('usuarios')
+          .select('id', { count: 'exact', head: true })
+          .eq('rol_id', datos.rol_id); 
+          
+        if (countError) {
+          setMensajeDatos({ tipo: 'error', texto: 'Error al verificar los permisos del sistema.' });
+          setGuardando(false);
+          return;
+        }
+
+        if (count !== null && count <= 1) {
+          setMensajeDatos({ tipo: 'error', texto: 'Acción denegada: No puedes cambiar tu rol porque eres el único Administrador.' });
+          setGuardando(false);
+          return;
+        }
+      }
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // ACTUALIZACIÓN ÚNICA A LA TABLA PÚBLICA
-    // El trigger en SQL se encargará automáticamente de actualizar el Auth (login)
     const { error: errorPublic } = await supabase
       .from('usuarios')
       .update({
         nombre_razon_social:   form.nombre_razon_social,
-        correo:                form.correo, // Lo enviamos directo aquí
+        correo:                form.correo,
         telefono:              form.telefono,
         tipo_identificacion:   form.tipo_identificacion,
         numero_identificacion: form.numero_identificacion,
+        rol_id:                form.rol_id, // Guardar el rol
         fecha_actualizacion:   new Date().toISOString(),
       })
       .eq('id', user.id);
 
     if (errorPublic) {
-      // Si el correo ya lo tiene otro usuario, Postgres arrojará un error de "Unique constraint"
       if (errorPublic.code === '23505') {
         setMensajeDatos({ tipo: 'error', texto: 'Error: Este correo electrónico o número de identificación ya está en uso por otra persona.' });
       } else {
@@ -143,6 +175,12 @@ const Perfil: React.FC = () => {
 
     setDatos({ ...form });
     setMensajeDatos({ tipo: 'ok', texto: '¡Datos actualizados correctamente!' });
+    
+    // Si cambió de rol, recargamos para actualizar menús
+    if (form.rol_id !== datos.rol_id) {
+        setTimeout(() => window.location.reload(), 2000); 
+    }
+
     setGuardando(false);
   };
 
@@ -159,20 +197,17 @@ const Perfil: React.FC = () => {
   const handleCambiarPassword = async () => {
     setMensajePassword(null);
 
-    // 1. Validar que los campos no estén vacíos
     if (!passwordActual) {
       setMensajePassword({ tipo: 'error', texto: 'Debes ingresar tu contraseña actual.' });
       return;
     }
 
-    // 2. Validar reglas de la nueva contraseña
     const errorReglas = validarReglasPassword(nuevaPassword);
     if (errorReglas) {
       setMensajePassword({ tipo: 'error', texto: errorReglas });
       return;
     }
 
-    // 3. Validar coincidencia
     if (nuevaPassword !== confirmarPassword) {
       setMensajePassword({ tipo: 'error', texto: 'Las contraseñas nuevas no coinciden.' });
       return;
@@ -187,7 +222,6 @@ const Perfil: React.FC = () => {
       return;
     }
 
-    // 4. Verificar que la contraseña actual es correcta (Iniciando sesión)
     const { error: errorVerificacion } = await supabase.auth.signInWithPassword({
       email: user.email,
       password: passwordActual,
@@ -199,7 +233,6 @@ const Perfil: React.FC = () => {
       return;
     }
 
-    // 5. Si la contraseña actual es correcta, actualizamos a la nueva
     const { error: errorActualizacion } = await supabase.auth.updateUser({ password: nuevaPassword });
 
     if (errorActualizacion) {
@@ -286,6 +319,18 @@ const Perfil: React.FC = () => {
                 placeholder="Ej: 123456789"
               />
             </div>
+          </div>
+
+          {/* NUEVO CAMPO: ROL */}
+          <div className="perfil-campo">
+            <label>Rol en el sistema</label>
+            <select name="rol_id" value={form.rol_id} onChange={handleChange}>
+              {roles.map((rol) => (
+                <option key={rol.id} value={rol.id}>
+                  {rol.nombre.charAt(0).toUpperCase() + rol.nombre.slice(1)}
+                </option>
+              ))}
+            </select>
           </div>
 
           {mensajeDatos && (

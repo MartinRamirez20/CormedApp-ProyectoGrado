@@ -11,6 +11,12 @@ interface PerfilData {
   telefono: string;
   tipo_identificacion: TipoId;
   numero_identificacion: string;
+  rol_id: number; // Añadido
+}
+
+interface Rol {
+  id: number;
+  nombre: string;
 }
 
 const Perfil: React.FC = () => {
@@ -20,7 +26,10 @@ const Perfil: React.FC = () => {
     telefono:            '',
     tipo_identificacion: 'CC',
     numero_identificacion: '',
+    rol_id: 1,
   });
+
+  const [roles, setRoles] = useState<Rol[]>([]); // Añadido para mostrar el nombre del rol
 
   // Estados para la contraseña
   const [passwordActual, setPasswordActual] = useState('');
@@ -36,15 +45,19 @@ const Perfil: React.FC = () => {
   const [showNuevaPassword, setShowNuevaPassword] = useState(false);
   const [showConfirmarPassword, setShowConfirmarPassword] = useState(false);
 
-  // ── Cargar datos del usuario ──────────────────────────────────────────────
+  // ── Cargar datos del usuario y roles ──────────────────────────────────────
   useEffect(() => {
     const cargar = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Cargar los roles para saber el nombre de su rol
+      const { data: rolesData } = await supabase.from('roles').select('id, nombre');
+      if (rolesData) setRoles(rolesData);
+
       const { data, error } = await supabase
         .from('usuarios')
-        .select('nombre_razon_social, correo, telefono, tipo_identificacion, numero_identificacion')
+        .select('nombre_razon_social, correo, telefono, tipo_identificacion, numero_identificacion, rol_id')
         .eq('id', user.id)
         .single();
 
@@ -55,6 +68,7 @@ const Perfil: React.FC = () => {
           telefono:              data.telefono              ?? '',
           tipo_identificacion:   (data.tipo_identificacion as TipoId) ?? 'CC',
           numero_identificacion: data.numero_identificacion ?? '',
+          rol_id:                data.rol_id                ?? 1,
         });
       }
       setCargando(false);
@@ -131,6 +145,10 @@ const Perfil: React.FC = () => {
 
   if (cargando) return <div className="perfil-cargando">Cargando perfil...</div>;
 
+  // Obtener el nombre del rol para mostrarlo de forma legible
+  const nombreRol = roles.find(r => r.id === datos.rol_id)?.nombre || '';
+  const rolCapitalizado = nombreRol ? nombreRol.charAt(0).toUpperCase() + nombreRol.slice(1) : '—';
+
   return (
     <div className="perfil-page">
       <div className="perfil-header">
@@ -153,6 +171,7 @@ const Perfil: React.FC = () => {
             { label: 'Teléfono',              valor: datos.telefono || '—' },
             { label: 'Tipo de Identificación',valor: datos.tipo_identificacion },
             { label: 'Número de Identificación', valor: datos.numero_identificacion },
+            { label: 'Rol en el sistema',     valor: rolCapitalizado }, // NUEVO CAMPO DE ROL
           ].map(({ label, valor }) => (
             <div className="perfil-campo" key={label}>
               <label>{label}</label>
