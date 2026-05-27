@@ -16,8 +16,14 @@ interface Pedido {
   fecha_creacion: string;
 }
 
+// Modificado para mostrar siempre 2 decimales
 const formatCurrency = (v: number) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
+  new Intl.NumberFormat('es-CO', { 
+    style: 'currency', 
+    currency: 'COP', 
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2 
+  }).format(v);
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -119,7 +125,6 @@ const Dashboard: React.FC = () => {
                     <tr
                       key={p.id}
                       className="dash-pedido-row"
-                      // Cambiamos el navigate para enviar el ID del pedido en el state
                       onClick={() => navigate('/admin/pedidos', { state: { pedidoId: p.id } })}
                       title="Ver detalle del pedido"
                     >

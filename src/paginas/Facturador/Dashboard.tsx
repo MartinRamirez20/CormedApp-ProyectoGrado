@@ -16,8 +16,14 @@ interface Pedido {
   fecha_creacion: string;
 }
 
+// Modificado para mostrar siempre 2 decimales
 const formatCurrency = (v: number) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
+  new Intl.NumberFormat('es-CO', { 
+    style: 'currency', 
+    currency: 'COP', 
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2 
+  }).format(v);
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -27,7 +33,6 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const cargarPedidos = async () => {
-      // El facturador necesita ver los pedidos recientes a nivel general
       const { data, error } = await supabase
         .from('pedidos')
         .select('id, referencia, cliente_nombre, monto_total, estado, fecha_creacion')
@@ -112,7 +117,6 @@ const Dashboard: React.FC = () => {
                     <tr
                       key={p.id}
                       className="dash-pedido-row"
-                      // Navega a la vista del facturador enviando el ID para abrir el modal
                       onClick={() => navigate('/facturador/pedidos', { state: { pedidoId: p.id } })}
                       title="Ver detalle del pedido"
                     >

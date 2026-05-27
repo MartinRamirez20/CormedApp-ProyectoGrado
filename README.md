@@ -415,3 +415,7 @@ Se agrega la posibilidad de consultar su rol en la sección perfil
 Recuperar Correo mediante ID y Numero de telefono en vez de nombre. 
 
 ARREGLO RECUPERAR CONTRASEÑA. Se comprobara mas adelante debido a limite de supabase.
+
+Se formaliza como se muestran los precios
+
+En dashboards

@@ -16,8 +16,14 @@ interface Pedido {
   fecha_creacion: string;
 }
 
+// Modificado para mostrar siempre 2 decimales
 const formatCurrency = (v: number) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
+  new Intl.NumberFormat('es-CO', { 
+    style: 'currency', 
+    currency: 'COP', 
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2 
+  }).format(v);
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -34,7 +40,6 @@ const Dashboard: React.FC = () => {
         return;
       }
 
-      // Consulta filtrada por el vendedor en sesión
       const { data, error } = await supabase
         .from('pedidos')
         .select('id, referencia, cliente_nombre, monto_total, estado, fecha_creacion')
@@ -78,19 +83,16 @@ const Dashboard: React.FC = () => {
         <div className="dash-card resumen-card">
           <h5 className="dash-card-title">Funciones Principales</h5>
           <div className="resumen-list">
-            {/* Botón Crear Pedido */}
             <button className="resumen-item" onClick={() => navigate('/vendedor/pedidos/crear')}>
               <FaPlus className="icons"/>
               <span>Crear Pedidos</span>
             </button>
 
-            {/* Botón Agregar Productos (Tienda) */}
             <button className="resumen-item" onClick={() => navigate('/vendedor/tienda', { state: { abrirModalCrear: true } })}>
               <FaBagShopping className="icons"/>
               <span>Agregar Productos</span>
             </button>
 
-            {/* Botón Crear Clientes (Restaurado y Funcional) */}
             <button className="resumen-item" onClick={() => navigate('/vendedor/clientes', { state: { abrirModalCrear: true } })}>
               <FaUsers className="icons"/>
               <span>Crear Clientes</span>
