@@ -221,14 +221,22 @@ function App() {
   };
 
   // ── Recuperar correo ───────────────────────────────────────────────────────
-  const handleBuscarEmail = async (nombre: string, telefono: string): Promise<string | null> => {
+  const handleBuscarEmail = async (numeroIdentificacion: string, telefono: string) => {
     try {
-      const { data, error } = await supabase.rpc('buscar_correo_por_identidad', {
-        p_nombre:   nombre.trim(),
-        p_telefono: telefono.trim(),
+      // Usamos .rpc para llamar a la función de Postgres directamente
+      const { data, error } = await supabase.rpc('buscar_correo_por_documento', {
+        p_documento: numeroIdentificacion.trim(),
+        p_telefono: telefono.trim()
       });
-      if (error) { console.error('Error al buscar email:', error.message); return null; }
-      return data ?? null;
+
+      if (error) {
+        console.error('Error en la función RPC:', error.message);
+        return null;
+      }
+
+      // La función devuelve directamente el texto del correo, o null si no lo encuentra
+      return data ? data : null;
+      
     } catch (error) {
       console.error('Error inesperado al buscar email:', error);
       return null;

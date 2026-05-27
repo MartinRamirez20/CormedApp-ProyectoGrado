@@ -3,18 +3,21 @@ import './RecuperarEmail.css';
 
 interface RecuperarEmailProps {
   onVolver?: () => void;
-  onBuscarEmail?: (nombre: string, telefono: string) => Promise<string | null>;
+  // Cambiamos 'nombre' por 'numeroIdentificacion'
+  onBuscarEmail?: (numeroIdentificacion: string, telefono: string) => Promise<string | null>;
 }
 
 const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
   onVolver,
   onBuscarEmail,
 }) => {
-  const [nombre, setNombre] = useState('');
+  // Nuevos estados
+  const [numeroIdentificacion, setNumeroIdentificacion] = useState('');
   const [telefono, setTelefono] = useState('');
+  
   const [emailEncontrado, setEmailEncontrado] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState('');
-  const [esExito, setEsExito] = useState(false); // ← controla el estilo del mensaje
+  const [esExito, setEsExito] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,15 +29,16 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
 
     try {
       if (onBuscarEmail) {
-        const email = await onBuscarEmail(nombre, telefono);
+        // Pasamos el número de identificación en lugar del nombre
+        const email = await onBuscarEmail(numeroIdentificacion, telefono);
 
         if (email) {
           setEmailEncontrado(email);
           setMensaje('¡Encontramos tu cuenta!');
-          setEsExito(true);  // ← éxito real
+          setEsExito(true); 
         } else {
-          setMensaje('No encontramos una cuenta con esos datos. Verifica tu nombre y teléfono.');
-          setEsExito(false); // ← no encontrado
+          setMensaje('No encontramos una cuenta con esos datos. Verifica tu número de identificación y teléfono.');
+          setEsExito(false);
         }
       }
     } catch {
@@ -60,17 +64,17 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
 
         <form onSubmit={handleSubmit} className="recuperar-email-form">
           <p className="recuperar-email-instrucciones">
-            Ingresa tu nombre o razón social y número de teléfono registrado para encontrar tu cuenta.
+            Ingresa tu número de identificación y número de teléfono registrado para encontrar tu cuenta.
           </p>
 
           <div className="form-group">
-            <label htmlFor="nombre">Nombre o Razón Social</label>
+            <label htmlFor="numeroIdentificacion">Número de Identificación</label>
             <input
               type="text"
-              id="nombre"
-              placeholder="Tal como fue registrado en el sistema"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              id="numeroIdentificacion"
+              placeholder="Ej: 123456789"
+              value={numeroIdentificacion}
+              onChange={(e) => setNumeroIdentificacion(e.target.value.trim())} // trim() quita espacios accidentales
               required
               disabled={loading}
             />
@@ -91,7 +95,6 @@ const RecuperarEmail: React.FC<RecuperarEmailProps> = ({
             <span className="input-ayuda">10 dígitos, sin espacios ni guiones</span>
           </div>
 
-          {/* Mensaje de éxito o error — clase controlada por esExito */}
           {mensaje && (
             <div className={`mensaje ${esExito ? 'exito' : 'error'}`}>
               {mensaje}

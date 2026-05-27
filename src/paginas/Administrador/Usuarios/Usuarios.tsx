@@ -96,7 +96,6 @@ const Usuarios: React.FC = () => {
   const [roles, setRoles]                 = useState<{ id: number; nombre: string }[]>([]);
   const [guardando, setGuardando]         = useState(false);
   const [mensaje, setMensaje]             = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
-  // Agrega este estado junto a los demás (cerca de línea 50)
   const [mensajeEliminar, setMensajeEliminar] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
 
   //Link Dashboard
@@ -202,13 +201,24 @@ const Usuarios: React.FC = () => {
   const inicio       = (pagina - 1) * REGISTROS_POR_PAGINA;
   const paginados = usuariosOrdenados.slice(inicio, inicio + REGISTROS_POR_PAGINA);
 
+  // ── Guardar Edición ───────────────────────────────────────────────────
   const handleGuardarEdicion = async () => {
     if (!modalEditar) return;
     
-    // Nueva validación
+    // Validación general
     const errorValidacion = validarUsuario(modalEditar);
     if (errorValidacion) {
       setMensaje({ tipo: 'error', texto: errorValidacion });
+      return;
+    }
+
+    // Novedad: Validar que el número de identificación no pertenezca a OTRO usuario
+    const idDuplicada = usuarios.some(u => 
+      u.numero_identificacion === modalEditar.numero_identificacion && 
+      u.id !== modalEditar.id // Ignorar el usuario que estamos editando
+    );
+    if (idDuplicada) {
+      setMensaje({ tipo: 'error', texto: 'Error: Ya existe otro usuario registrado con este número de identificación.' });
       return;
     }
 
@@ -231,7 +241,12 @@ const Usuarios: React.FC = () => {
       .eq('id', modalEditar.id);
 
     if (error) {
-      setMensaje({ tipo: 'error', texto: `Error: ${error.message}` });
+      // Captura si la base de datos lanza un error de valor único (ej. si dos editan al tiempo)
+      if (error.code === '23505') {
+        setMensaje({ tipo: 'error', texto: 'Error: El correo o número de identificación ya están en uso.' });
+      } else {
+        setMensaje({ tipo: 'error', texto: `Error: ${error.message}` });
+      }
     } else {
       setMensaje({ tipo: 'ok', texto: '¡Usuario actualizado!' });
       await cargarUsuarios();
@@ -282,11 +297,21 @@ const Usuarios: React.FC = () => {
     }
   };
 
+  // ── Crear Usuario ─────────────────────────────────────────────────────
   const handleCrearUsuario = async () => {
-    // Nueva validación
+    // Validación general
     const errorValidacion = validarUsuario(nuevoUsuario);
     if (errorValidacion) {
       setMensajeCrear({ tipo: 'error', texto: errorValidacion });
+      return;
+    }
+
+    // Novedad: Validar que el número de identificación no exista en la BD (local check)
+    const idDuplicada = usuarios.some(u => 
+      u.numero_identificacion === nuevoUsuario.numero_identificacion
+    );
+    if (idDuplicada) {
+      setMensajeCrear({ tipo: 'error', texto: 'Error: Ya existe un usuario registrado con este número de identificación.' });
       return;
     }
 
@@ -313,7 +338,12 @@ const Usuarios: React.FC = () => {
     const result = await res.json();
 
     if (!res.ok || result.error) {
-      setMensajeCrear({ tipo: 'error', texto: result.error ?? 'Error al crear el usuario.' });
+      // Captura el error si viene desde tu Edge Function
+      if (result.error?.includes('duplicate key') || result.error?.includes('23505')) {
+        setMensajeCrear({ tipo: 'error', texto: 'Error: El correo o número de identificación ya están en uso.' });
+      } else {
+        setMensajeCrear({ tipo: 'error', texto: result.error ?? 'Error al crear el usuario.' });
+      }
     } else {
       setMensajeCrear({ tipo: 'ok', texto: '¡Usuario creado exitosamente!' });
       await cargarUsuarios();
