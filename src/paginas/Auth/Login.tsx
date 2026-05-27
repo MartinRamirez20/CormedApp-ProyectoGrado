@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaExclamationCircle, FaEnvelope } from 'react-icons/fa';
+import { supabase } from '../../supabase';
 import './Login.css';
 
 interface LoginProps {
@@ -14,8 +15,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword, onForgotEmail
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [recoveryEmail, setRecoveryEmail] = useState('');
-  // NUEVO: estado para saber si el enlace ya fue enviado exitosamente
+  
   const [recoverySuccess, setRecoverySuccess] = useState(false);
+  const [recoveryError, setRecoveryError] = useState(''); // NUEVO: Estado para el error de recuperación
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -32,14 +34,40 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword, onForgotEmail
 
   const handleRecoverySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setRecoveryError(''); // Limpiamos errores previos
+
     if (onRecoverPassword) {
       setLoading(true);
       try {
-        await onRecoverPassword(recoveryEmail);
-        // Si llega aquí sin error, consideramos que fue exitoso
+        // Usamos .ilike() para ignorar mayúsculas/minúsculas y .trim() para limpiar espacios
+        const emailLimpio = recoveryEmail.trim();
+
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select('correo')
+          .ilike('correo', emailLimpio) 
+          .maybeSingle();
+
+        // SOLUCIÓN A TYPESCRIPT: Usamos la variable 'error'
+        if (error) {
+          console.error("Error al consultar la base de datos:", error.message);
+          setRecoveryError('Problema de conexión al verificar el correo.');
+          setLoading(false);
+          return;
+        }
+
+        // Si no hay datos, el correo no está registrado (o está bloqueado por RLS)
+        if (!data) {
+          setRecoveryError('Este correo no está registrado en el sistema.');
+          setLoading(false);
+          return;
+        }
+
+        // Si pasa la validación, enviamos el enlace
+        await onRecoverPassword(emailLimpio);
         setRecoverySuccess(true);
-      } catch {
-        // El componente padre puede manejar el error con un toast/alerta
+      } catch (err) {
+        setRecoveryError('Ocurrió un error al intentar procesar la solicitud.');
       } finally {
         setLoading(false);
       }
@@ -48,10 +76,11 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword, onForgotEmail
 
   const toggleRecoveryMode = () => {
     setIsRecoveryMode(!isRecoveryMode);
-    // Al volver al login, reseteamos el estado de recuperación
+    // Al volver al login, reseteamos todos los estados de recuperación
     if (isRecoveryMode) {
       setRecoveryEmail('');
       setRecoverySuccess(false);
+      setRecoveryError('');
     }
   };
 
@@ -62,7 +91,6 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword, onForgotEmail
         {/* Formulario de Recuperación */}
         <div className="form-container recovery-form">
           {!recoverySuccess ? (
-            // --- Vista normal: pedir correo ---
             <form onSubmit={handleRecoverySubmit}>
               <h1>CormedAPP</h1>
               <br />
@@ -77,7 +105,18 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword, onForgotEmail
                 required
                 disabled={loading}
               />
-              <span>Te enviaremos un enlace para restablecer tu contraseña</span>
+              
+              {/* NUEVO: Mensaje de error renderizado */}
+              {recoveryError && (
+                <div className="mensaje error" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ef5350', fontSize: '13px', marginTop: '10px' }}>
+                  <FaExclamationCircle size={16} />
+                  <span>{recoveryError}</span>
+                </div>
+              )}
+
+              <span style={{ marginTop: recoveryError ? '10px' : '0' }}>
+                Te enviaremos un enlace para restablecer tu contraseña
+              </span>
               <button type="submit" disabled={loading}>
                 {loading ? 'Enviando...' : 'Enviar enlace'}
               </button>
@@ -95,7 +134,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword, onForgotEmail
             <div className="recovery-success">
               <h1>CormedAPP</h1>
               <br />
-              <div className="success-icon">✉️</div>
+              <div className="success-icon"><FaEnvelope /></div>
               <h2>¡Enlace enviado!</h2>
               <p>
                 Revisa tu bandeja de entrada en <strong>{recoveryEmail}</strong> y haz clic en
@@ -115,7 +154,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword, onForgotEmail
           )}
         </div>
 
-        {/* Formulario de Login — sin cambios */}
+        {/* Formulario de Login */}
         <div className="form-container login-form">
           <form onSubmit={handleLoginSubmit}>
             <h1>CormedAPP</h1>
@@ -156,7 +195,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRecoverPassword, onForgotEmail
           </form>
         </div>
 
-        {/* Panel de Toggle — sin cambios */}
+        {/* Panel de Toggle */}
         <div className="toggle-container">
           <div className="toggle">
             <div className="toggle-panel toggle-left">

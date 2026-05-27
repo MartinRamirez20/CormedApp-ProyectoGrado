@@ -426,6 +426,7 @@ Se arregla un error con una variable declarada y no usaba que no permitia el des
 
 Se comprueba el correcto funcionamiento de recuperar contraseña y se cambian sus estilos
 
+Se agrega una comprobacion en el recuperar contraseña, para enviar a un correo previamente registrado.
 FINALIZACION PROYECTO DE GRADO
 
 GRACIAS
