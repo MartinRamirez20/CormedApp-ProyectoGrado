@@ -412,4 +412,6 @@ Se alerta el stock cuando hay menos de 50 unidades.
 
 Se agrega la posibilidad de consultar su rol en la sección perfil
 
-Recuperar Correo mediante ID y Numero de telefono en vez de nombre.
+Recuperar Correo mediante ID y Numero de telefono en vez de nombre. 
+
+ARREGLO RECUPERAR CONTRASEÑA. Se comprobara mas adelante debido a limite de supabase.

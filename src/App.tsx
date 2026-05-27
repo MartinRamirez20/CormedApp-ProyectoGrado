@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from './supabase.ts';
 import './App.css';
 
-import { useCallback} from 'react'; //Para el hook inactividad
+import { useCallback} from 'react'; // Para el hook inactividad
 import { useInactividad } from './hooks/useInactividad';
 
 import Login from './paginas/Auth/Login';
@@ -39,52 +39,60 @@ import PedidosFacturador from './paginas/Facturador/Pedidos/Pedidos.tsx';
 type AuthVista = 'login' | 'recuperar-email';
 type Rol = 'administrador' | 'vendedor' | 'facturador' | null;
 
-// ── Página dedicada para restablecer contraseña ────────────────────────────
+// ── Página dedicada para restablecer contraseña (Manejo de PKCE e Implicit) ──
 function PaginaRestablecerPassword() {
   const navigate = useNavigate();
-  const [token, setToken] = useState('');
   const [listo, setListo] = useState(false);
 
   useEffect(() => {
-    const hash = window.location.hash;
-    const params = new URLSearchParams(hash.substring(1));
-    const accessToken = params.get('access_token');
-    const type = params.get('type');
-    const error = params.get('error');
-    const errorDescription = params.get('error_description');
-
-    if (error) {
-      alert(`El enlace no es válido o ha expirado: ${errorDescription?.replace(/\+/g, ' ')}`);
-      navigate('/', { replace: true });
-      return;
-    }
-
-    if (accessToken && type === 'recovery') {
-      supabase.auth.signOut().then(() => {
-        setToken(accessToken);
-        window.history.replaceState({}, document.title, window.location.pathname);
+    const verificarFlujoRecuperacion = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
         setListo(true);
-      });
-    } else if (accessToken) {
-      setToken(accessToken);
-      window.history.replaceState({}, document.title, window.location.pathname);
-      setListo(true);
-    } else {
-      navigate('/', { replace: true });
-    }
-  }, []);
+      } else {
+        // Si es PKCE, el intercambio del '?code=' puede tardar unos milisegundos.
+        // Escuchamos activamente hasta que la sesión se establezca.
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+          if (currentSession) {
+            setListo(true);
+            subscription.unsubscribe();
+          }
+        });
+
+        // Guard de seguridad: si en 2.5 segundos no se valida la sesión, el token expiró o es inválido.
+        const timer = setTimeout(() => {
+          subscription.unsubscribe();
+          supabase.auth.getSession().then(({ data: { session: finalSession } }) => {
+            if (!finalSession) {
+              alert('El enlace de recuperación no es válido, ya fue utilizado o ha expirado.');
+              navigate('/', { replace: true });
+            } else {
+              setListo(true);
+            }
+          });
+        }, 2500);
+
+        return () => {
+          clearTimeout(timer);
+          subscription.unsubscribe();
+        };
+      }
+    };
+
+    verificarFlujoRecuperacion();
+  }, [navigate]);
 
   const handleRestablecer = async (nuevaPassword: string, _token: string): Promise<boolean> => {
     try {
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: token,
-        refresh_token: new URLSearchParams(window.location.hash.substring(1)).get('refresh_token') ?? '',
-      });
-      if (sessionError) { alert(`Sesión inválida: ${sessionError.message}`); return false; }
-
+      // Modificación directa sobre la sesión segura otorgada por el enlace
       const { error } = await supabase.auth.updateUser({ password: nuevaPassword });
-      if (error) { alert(`Error al restablecer: ${error.message}`); return false; }
+      if (error) { 
+        alert(`Error al restablecer: ${error.message}`); 
+        return false; 
+      }
 
+      // Desconexión inmediata para limpiar credenciales temporales y forzar el reingreso manual
       await supabase.auth.signOut();
       return true;
     } catch {
@@ -92,11 +100,17 @@ function PaginaRestablecerPassword() {
     }
   };
 
-  if (!listo) return null;
+  if (!listo) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: '12px', background: '#f8f9fa' }}>
+        <div style={{ color: '#512da8', fontWeight: 600 }}>Validando credenciales de recuperación...</div>
+      </div>
+    );
+  }
 
   return (
     <RestablecerPassword
-      token={token}
+      token=""
       onRestablecer={handleRestablecer}
       onVolver={() => navigate('/', { replace: true })}
     />
@@ -123,7 +137,6 @@ async function obtenerRolUsuario(userId: string): Promise<Rol> {
 
   if (!data) return null;
 
-  // Supabase puede devolver roles como objeto o array
   const rolesData = data.roles as { nombre: string } | { nombre: string }[] | null;
   if (!rolesData) return null;
 
@@ -152,35 +165,77 @@ function App() {
   const [rol, setRol] = useState<Rol>(null);
   const [authVista, setAuthVista] = useState<AuthVista>('login');
   const [cargando, setCargando] = useState(true);
-  const [mostrarAdvertencia, setMostrarAdvertencia] = useState(false); //Hook inactividad
+  const [mostrarAdvertencia, setMostrarAdvertencia] = useState(false); // Hook inactividad
   const navigate = useNavigate();
 
-  useEffect(() => {
-  supabase.auth.getSession().then(async ({ data: { session } }) => {
-    if (session) {
-      const rolObtenido = await obtenerRolUsuario(session.user.id);
-      if (!rolObtenido) {
-        await supabase.auth.signOut();
-      } else {
-        setRol(rolObtenido);
-        setUsuarioAutenticado(true);
-        // Solo redirigir si estamos en la raíz "/", no en otras rutas ya válidas
-        if (window.location.pathname === '/') {
-          navigate(rutaPorRol(rolObtenido));
-        }
-      }
-    }
-    setCargando(false);
-    });
-  }, []);
+  // Evaluador riguroso del estado del URL
+  const verificarSiEsFlujoRecuperacion = () => {
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+    const search = window.location.search;
+
+    return (
+      path === '/restablecer-password' ||
+      hash.includes('type=recovery') ||
+      search.includes('type=recovery') ||
+      search.includes('code=') // Captura indispensable para el flujo PKCE
+    );
+  };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, _session) => {
-      console.log("Evento de Auth:", event); // Para que veas en consola qué pasa
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const esRecuperacion = verificarSiEsFlujoRecuperacion();
+
+      if (session) {
+        // Interceptores preventivos: si es recuperación, bloqueamos desvíos al dashboard
+        if (esRecuperacion) {
+          setCargando(false);
+          if (window.location.pathname !== '/restablecer-password') {
+            navigate('/restablecer-password' + window.location.search + window.location.hash, { replace: true });
+          }
+          return;
+        }
+
+        const rolObtenido = await obtenerRolUsuario(session.user.id);
+        if (!rolObtenido) {
+          await supabase.auth.signOut();
+        } else {
+          setRol(rolObtenido);
+          setUsuarioAutenticado(true);
+          if (window.location.pathname === '/') {
+            navigate(rutaPorRol(rolObtenido));
+          }
+        }
+      }
+      setCargando(false);
+    });
+  }, [navigate]);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Evento de Auth:", event);
+      const esRecuperacion = verificarSiEsFlujoRecuperacion();
       
       if (event === 'PASSWORD_RECOVERY') {
-        // Si Supabase detecta que vienes del correo, te manda aquí
         navigate('/restablecer-password', { replace: true });
+        return;
+      }
+
+      // Si el inicio de sesión es automático por código de recuperación, evitamos procesarlo como login ordinario
+      if (event === 'SIGNED_IN' && session) {
+        if (esRecuperacion) {
+          return; 
+        }
+
+        // Login manual estándar a través del formulario
+        if (window.location.pathname === '/') {
+          const rolObtenido = await obtenerRolUsuario(session.user.id);
+          if (rolObtenido) {
+            setRol(rolObtenido);
+            setUsuarioAutenticado(true);
+            navigate(rutaPorRol(rolObtenido));
+          }
+        }
       }
     });
 
@@ -223,7 +278,6 @@ function App() {
   // ── Recuperar correo ───────────────────────────────────────────────────────
   const handleBuscarEmail = async (numeroIdentificacion: string, telefono: string) => {
     try {
-      // Usamos .rpc para llamar a la función de Postgres directamente
       const { data, error } = await supabase.rpc('buscar_correo_por_documento', {
         p_documento: numeroIdentificacion.trim(),
         p_telefono: telefono.trim()
@@ -234,9 +288,7 @@ function App() {
         return null;
       }
 
-      // La función devuelve directamente el texto del correo, o null si no lo encuentra
       return data ? data : null;
-      
     } catch (error) {
       console.error('Error inesperado al buscar email:', error);
       return null;
@@ -269,7 +321,7 @@ function App() {
   if (cargando) return null;
 
   return (
-     <>
+      <>
       {/* ── Modal advertencia inactividad ── */}
       {mostrarAdvertencia && (
         <div style={{
@@ -322,18 +374,27 @@ function App() {
                   />
                 )}
                 {authVista === 'recuperar-email' && (
-                  <RecuperarEmail
-                    onVolver={() => setAuthVista('login')}
-                    onBuscarEmail={handleBuscarEmail}
-                  />
+                  <Navigate to="/recuperar-email" replace />
                 )}
               </>
             )
           }
         />
 
+        {/* Ruta aislada para la subpantalla de búsqueda de correo electrónico */}
+        <Route 
+          path="/recuperar-email" 
+          element={
+            <RecuperarEmail
+              onVolver={() => { setAuthVista('login'); navigate('/'); }}
+              onBuscarEmail={handleBuscarEmail}
+            />
+          } 
+        />
+
         <Route path="/restablecer-password" element={<PaginaRestablecerPassword />} />
 
+        {/* Administrador */}
         <Route
           path="/admin"
           element={
@@ -356,6 +417,7 @@ function App() {
           </Route>
         </Route>
 
+        {/* Vendedor */}
         <Route
           path="/vendedor"
           element={
@@ -376,6 +438,7 @@ function App() {
           </Route>
         </Route>
 
+        {/* Facturador */}
         <Route
           path="/facturador"
           element={
