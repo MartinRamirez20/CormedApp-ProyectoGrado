@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FaEye, FaEyeSlash, FaRegCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import './RestablecerPassword.css';
 
 interface RestablecerPasswordProps {
@@ -45,7 +46,7 @@ const RestablecerPassword: React.FC<RestablecerPasswordProps> = ({
   
     const errorValidacion = validarPassword();
     if (errorValidacion) {
-      setMensaje(`${errorValidacion}`);
+      setMensaje(errorValidacion);
       return;
     }
 
@@ -58,14 +59,14 @@ const RestablecerPassword: React.FC<RestablecerPasswordProps> = ({
       
         if (resultado) {
           setExito(true);
-          setMensaje('¡Contraseña restablecida exitosamente!');
+          // Ya no es necesario el mensaje aquí porque el estado 'exito' renderiza otra vista
         } else {
           setMensaje('No se pudo actualizar. El enlace puede haber expirado.');
         }
       }
     } catch (error: any) {
-      // Si Supabase devuelve un error específico (ej: password muy débil según sus políticas)
-      setMensaje(`❌ ${error.message || 'Ocurrió un error inesperado.'}`);
+      // Si Supabase devuelve un error específico
+      setMensaje(error.message || 'Ocurrió un error inesperado.');
     } finally {
       setLoading(false);
     }
@@ -92,7 +93,7 @@ const RestablecerPassword: React.FC<RestablecerPasswordProps> = ({
       <div className="restablecer-container">
         <div className="restablecer-card">
           <div className="restablecer-exito">
-            <div className="icono-exito">🎉</div>
+            <div className="icono-exito"><FaRegCheckCircle /></div>
             <h2>¡Contraseña Actualizada!</h2>
             <p>Tu contraseña ha sido restablecida exitosamente.</p>
             <p className="texto-secundario">
@@ -142,7 +143,7 @@ const RestablecerPassword: React.FC<RestablecerPasswordProps> = ({
                 onClick={() => setMostrarPassword(!mostrarPassword)}
                 tabIndex={-1}
               >
-                {mostrarPassword ? '👁️' : '👁️‍🗨️'}
+                {mostrarPassword ? <FaEye /> : <FaEyeSlash />}
               </button>
             </div>
             
@@ -181,8 +182,9 @@ const RestablecerPassword: React.FC<RestablecerPasswordProps> = ({
           </div>
 
           {mensaje && (
-            <div className={`mensaje ${mensaje.includes('✅') ? 'exito' : 'error'}`}>
-              {mensaje}
+            <div className="mensaje error">
+              <span className="mensaje-icono"><FaExclamationCircle /></span>
+              <span className="mensaje-texto">{mensaje}</span>
             </div>
           )}
 

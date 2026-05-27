@@ -421,3 +421,11 @@ Se formaliza como se muestran los precios
 En dashboards
 
 En Pedidos, crear y editar.
+
+Se arregla un error con una variable declarada y no usaba que no permitia el despliegue de la app
+
+Se comprueba el correcto funcionamiento de recuperar contraseña y se cambian sus estilos
+
+FINALIZACION PROYECTO DE GRADO
+
+GRACIAS
