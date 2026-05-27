@@ -53,7 +53,7 @@ function PaginaRestablecerPassword() {
       } else {
         // Si es PKCE, el intercambio del '?code=' puede tardar unos milisegundos.
         // Escuchamos activamente hasta que la sesión se establezca.
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((currentSession) => {
           if (currentSession) {
             setListo(true);
             subscription.unsubscribe();
