@@ -48,7 +48,7 @@ interface UsuarioSesion {
 }
 
 const formatCurrency = (v: number) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
+  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
 
 const EMPRESA = {
   nombre:    'Comercializadora Médica CORMED S.A.S.',

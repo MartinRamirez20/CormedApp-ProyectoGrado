@@ -419,3 +419,5 @@ ARREGLO RECUPERAR CONTRASEÑA. Se comprobara mas adelante debido a limite de sup
 Se formaliza como se muestran los precios
 
 En dashboards
+
+En Pedidos, crear y editar.
